@@ -336,6 +336,11 @@ ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
 ## TABLES
 ## =================================
 
+## 1/ resources (PT regimen)
+## 2/ outcomes (PT regimen not included)
+## 3/ HE: costs/incremental costs; dalys incremental dalys; ICERs
+
+## see TABLE2 & TABLE4 but modify
 
 ## === table_resources
 
