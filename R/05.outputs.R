@@ -20,12 +20,14 @@ absspace <- function(x,...) {             #works
   format(abs(x), ..., big.mark=" ",scientific = FALSE, trim = TRUE)
 }
 rot45 <- theme(axis.text.x = element_text(angle = 45, hjust = 1))
-pnlth <- theme(axis.text.x = element_text(angle=45,hjust=1),
-               panel.grid.major = element_blank(),
-               panel.grid.minor = element_blank(),
-               strip.background = element_blank(),
-               legend.position = 'top',
-               panel.border = element_rect(colour = "black"))
+pnlth <- theme(
+  axis.text.x = element_text(angle=45,hjust=1),
+  panel.grid.major = element_line(colour="grey"),
+  panel.grid.minor = element_line(colour="grey"),
+  strip.background = element_blank(),
+  legend.position = 'top',
+  panel.border = element_rect(colour = "black",fill=NA)
+)
 
 ## load or create LYs
 source(here('R/utils/makeLYs.R'))
@@ -35,13 +37,10 @@ LY <- LY[,.(iso3,acat=variable,lys=value)] #rename
 
 
 ## load all results
-## load(here('data/IVsmaller.Rdata'))
 load(here('data/IV.Rdata'))
 load(here('data/IVb.Rdata')) #version
 load(here('data/IVT.Rdata'))
-## load(here('indata/DX3.Rdata'))
 load(here('indata/FRF.Rdata'))
-## load(here('indata/LEA.Rdata'))
 load(here('indata/GDP.Rdata'))
 WK <- fread(here('indata/TB_notifications_2020-10-15.csv'))
 WK <- unique(WK[,.(iso3,g_whoregion)])  #key!
@@ -51,8 +50,54 @@ load(here('indata/HBC.Rdata'))          #HBC lists
 ## DATA WORK
 ## =================================
 
-## === rename GQR
+## === rename FQR
 DX <- FRF[,.(prop=mean(fqr)),by=iso3]
+
+## === data for NNS plot
+IVD <- IV[,.(deaths=sum((deaths-deaths0)),
+             incdeaths=sum((incdeaths-incdeaths0)),
+             inctb=sum((inctb-inctb0)),
+             rsatt=sum((rsatt-rsatt0)),
+             rratt=sum((rratt-rratt0)),
+             ptc=sum((ptc-ptc0)),hhc=sum(hhc)),
+          by = .(repn,intervention,`PT regimen`)]
+
+midi <- IVD[,.(rsatt=mean(rsatt/abs(inctb)),
+              rratt=mean(rratt/abs(inctb)),
+              ptc=mean(ptc/abs(inctb)),
+              hhc=mean(hhc/abs(inctb))),
+           by=.(intervention,`PT regimen`)]
+
+midd <- IVD[,.(rsatt=mean(rsatt/abs(deaths)),
+              rratt=mean(rratt/abs(deaths)),
+              ptc=mean(ptc/abs(deaths)),
+              hhc=mean(hhc/abs(deaths))),
+           by=.(intervention,`PT regimen`)]
+
+midi[,quantity:='per TB case averted']
+midd[,quantity:='per TB death averted']
+
+B <- rbind(midi,midd)
+BM <- melt(B,id=c('intervention','PT regimen','quantity'))
+BM
+
+BM[variable=='ptc' & `PT regimen`=='FQ'] #right pattern
+
+
+BMR <- BM[variable %in% c('ptc','hhc') &
+          quantity %in% c('per TB case averted','per TB death averted')]
+BMR[grep('BDQ',`PT regimen`),`PT regimen`:='BDQ/DLM']
+BMR[grepl('death',quantity),quantity:='Death']
+BMR[grepl('case',quantity),quantity:='Incident TB']
+BMR[grepl('ptc',variable),variable:='Preventive therapy courses']
+BMR[grepl('hhc',variable),variable:='Household contacts screened']
+BMR$intervention <- factor(BMR$intervention,
+                           levels=c("PT to <5/HIV+",
+                                    "PT to <5/HIV+/TST+",
+                                    "PT to <15"),
+                           ordered = TRUE)
+
+BMR <- BMR[!is.na(intervention)]        #TODO check
 
 ## === compile CE results
 ## NOTE check
@@ -79,7 +124,6 @@ IVT[,c('lys0','lys1'):=.(lys*deaths0,lys*deaths)]
 IV <- merge(IV,WK,by='iso3',all.x = TRUE)
 IVb <- merge(IVb,WK,by='iso3',all.x = TRUE)
 
-
 ## by country
 IVc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
           by = .(repn,iso3,intervention,`PT regimen`)]
@@ -89,11 +133,8 @@ IVc0 <- IV[,.(deaths=sum(deaths0),cost=sum(cost0),lys=sum(lys0)),
            by = .(repn,iso3,intervention,`PT regimen`)]
 IVc0 <- IVc0[,.(deaths0=mean(deaths),cost0=mean(cost),lys0=mean(lys)),
              by = .(iso3,intervention,`PT regimen`)]
-IVa <- IVb[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
-           by = .(repn,iso3,intervention,`PT regimen`)]
-IVa <- IVb[,.(deaths=mean(deaths),cost=mean(cost),lys=mean(lys)),
-           by = .(iso3,intervention,`PT regimen`)]
 
+## data for CE plot
 CEC <- merge(IVc,IVc0)
 CEC <- merge(CEC,GDP,by='iso3',all.x=TRUE,all.y = FALSE)
 CEC[,cpda:=(cost-cost0)/(lys0-lys+1e-6)]
@@ -112,15 +153,27 @@ tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
 
 ## === figure_NN
 
-## FIGURE2
+## TODO check regimen
+## TODO fine format
+
+GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
+  geom_bar(stat='identity',position='dodge') +
+  facet_grid(variable ~ quantity ,scales='free') +
+  scale_fill_colorblind()+
+  xlab('Intervention')+
+  ylab('Additional resource (row) per quantity averted (column)') +
+  pnlth
+
+ggsave(GP,file=here('output/figure_NN.eps'),w=6,h=7)
+ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
 
 ## === figure_FQR
 
 ## FIGURE 3
 
-## === figure_CE
 
-## CE4_hbc
+
+## === figure_CE
 
 ## TODO swtich to LVX, DLM
 
@@ -142,13 +195,13 @@ CECR$`PT regimen` <- factor(CECR$`PT regimen`,
 colz <- c('BDQ'="#56B4E9",'FQ'="#E69F00",'none'="#000000")
 ## c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-## jj
+## make plot
 tp <- 5e3
-ggplot(CECR,
-       aes(iso3,cpda,
-           shape=intervention,
-           group=iso3,
-           col=`PT regimen`))+
+GP <- ggplot(CECR,
+             aes(iso3,cpda,
+                 shape=intervention,
+                 group=iso3,
+                 col=`PT regimen`))+
   geom_line(data=tmp,aes(x=iso3,y=gdp/1,group=1),col='darkgrey')+
   geom_line(data=tmp,aes(x=iso3,y=gdp/2,group=1),lty=2,col='darkgrey')+
   geom_point(size=3,lwd=3) +
@@ -163,8 +216,8 @@ ggplot(CECR,
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.8,0.2))
 
-ggsave(here('output/CE4_hbc.pdf'),w=10,h=10)
-ggsave(here('output/CE4_hbc.jpg'),w=10,h=10)
+ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)
+ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
 
 ## =================================
 ## TABLES
@@ -707,88 +760,6 @@ BMTR <- melt(BTR,id=c('intervention','PT regimen',
 ## ============
 ## ============
 ## graphs
-
-## Figure 1
-IVD <- IV[,.(deaths=sum((deaths-deaths0)),
-             incdeaths=sum((incdeaths-incdeaths0)),
-             inctb=sum((inctb-inctb0)),
-             rsatt=sum((rsatt-rsatt0)),
-             rratt=sum((rratt-rratt0)),
-             ptc=sum((ptc-ptc0)),hhc=sum(hhc)),
-          by = .(repn,intervention,`PT regimen`)]
-
-midi <- IVD[,.(rsatt=mean(rsatt/abs(inctb)),
-              rratt=mean(rratt/abs(inctb)),
-              ptc=mean(ptc/abs(inctb)),
-              hhc=mean(hhc/abs(inctb))),
-           by=.(intervention,`PT regimen`)]
-## TODO lo/hi
-
-
-midd <- IVD[,.(rsatt=mean(rsatt/abs(deaths)),
-              rratt=mean(rratt/abs(deaths)),
-              ptc=mean(ptc/abs(deaths)),
-              hhc=mean(hhc/abs(deaths))),
-           by=.(intervention,`PT regimen`)]
-## TODO lo/hi
-
-midi[,quantity:='per TB case averted']
-midd[,quantity:='per TB death averted']
-
-B <- rbind(midi,midd)
-BM <- melt(B,id=c('intervention','PT regimen','quantity'))
-BM
-
-BM[variable=='ptc' & `PT regimen`=='FQ'] #right pattern
-
-
-BMR <- BM[variable %in% c('ptc','hhc') &
-          quantity %in% c('per TB case averted','per TB death averted')]
-BMR[grep('BDQ',`PT regimen`),`PT regimen`:='BDQ/DLM']
-BMR[grepl('death',quantity),quantity:='Death']
-BMR[grepl('case',quantity),quantity:='Incident TB']
-BMR[grepl('ptc',variable),variable:='Preventive therapy courses']
-BMR[grepl('hhc',variable),variable:='Household contacts screened']
-BMR$intervention <- factor(BMR$intervention,
-                           levels=c("PT to <5/HIV+",
-                                    "PT to <5/HIV+/TST+",
-                                    "PT to <15"),
-                           ordered = TRUE)
-
-## TODO exclude INH
-## TODO include no PT
-## TODO inc, inc death, death
-## TODO lines for no PT
-
-BMR <- BMR[!is.na(intervention)]        #TODO check
-
-GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
-    geom_bar(stat='identity',position='dodge') +
-    facet_grid(variable ~ quantity ,scales='free') +
-    scale_fill_colorblind()+
-    xlab('Intervention')+
-  ylab('Additional resource (row) per quantity averted (column)') +
-  rot45
-    ## pnlth+
-    ## ggpubr::grids() ## +
-GP
-
-ggsave(GP,file=here('output/FIGURE2.pdf'),w=6,h=7)
-ggsave(GP,file=here('output/FIGURE2.png'),w=6,h=7)
-
-GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
-    geom_bar(stat='identity',position='dodge') +
-    facet_wrap(variable ~ quantity ,scales='free') +
-    scale_fill_colorblind()+
-    xlab('Intervention')+
-    ylab('Additional resource (row) per quantity averted (column)') +
-  rot45## +                                  #    pnlth+
-    ## ggpubr::grids() ## +
-GP
-
-ggsave(GP,file=here('output/FIGURE2free.pdf'),w=6,h=7)
-ggsave(GP,file=here('output/FIGURE2free.png'),w=6,h=7)
-
 
 ## ====== new  expts
 ## Figure 1 new
