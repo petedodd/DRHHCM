@@ -715,5 +715,20 @@ fwrite(Wo,file=here('output/TABLE4.csv'))
 
 if(FALSE){
 
+library(googlesheets4)
+
+
+
+## create an ID to access the googlesheets results sheet
+  "https://docs.google.com/spreadsheets/d/1leFkszUMRhR7i2iLgEWbnO1bbHlCq1mE8ikYYMaVG24/edit#gid=0"%>%
+  as_sheets_id() %>%
+  as.character() -> shid
+
+
+## reformatting etc needed
+test <- fread(file=here('outout/test.csv'))
+write_sheet(test,shid,sheet='test')
+
+
 
 }
