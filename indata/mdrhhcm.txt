@@ -1,0 +1,36 @@
+child contact of RR index case
+	active TB
+		RS-ATT
+			dies
+			survives
+		RR-ATT
+			dies
+			survives
+		no ATT
+			dies
+			survives
+	no active TB
+		PT
+			incident TB
+				RS-ATT
+					dies
+					survives
+				RR-ATT
+					dies
+					survives
+				no ATT
+					dies
+					survives
+			no incident TB
+		no PT
+			incident TB
+				RS-ATT
+					dies
+					survives
+				RR-ATT
+					dies
+					survives
+				no ATT
+					dies
+					survives
+			no incident TB
