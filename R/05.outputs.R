@@ -27,6 +27,45 @@ hi <- function(x) quantile(x,.975)
 tv <- function(x) tableHTML::tableHTML(x) #looking at tables
 fmean <- function(x) mean(x[is.finite(x)]) #a mean for finite (no NA or Inf)
 
+
+seehere <- function(x) paste0(see(mean(x)),
+                              " (",see(lo(x))," - ",
+                              see(hi(x)),")")
+
+
+## NOTE costs: LVX < MXF; DLM < BDQ
+## function for doing by regimen and intervention
+makehilo <- function(X,cls){
+  Xm <- X[,lapply(.SD,mean),
+          by=.(`PT regimen`,intervention),
+          .SDcols=cls]
+  Xh <- X[,lapply(.SD,hi),
+          by=.(`PT regimen`,intervention),
+          .SDcols=cls]
+  Xl <- X[,lapply(.SD,lo),
+          by=.(`PT regimen`,intervention),
+          .SDcols=cls]
+  clslo <- paste0(cls,'.lo')
+  clshi <- paste0(cls,'.hi')
+  names(Xl)[names(Xl) %in% cls] <- clslo
+  names(Xh)[names(Xh) %in% cls] <- clshi
+  Xlmh <- merge(Xm,Xl,by=c('PT regimen','intervention'))
+  Xlmh <- merge(Xlmh,Xh,by=c('PT regimen','intervention'))
+  acls <- c(cls,clslo,clshi)
+  Xlmh[,(acls):=lapply(.SD,see),.SDcols=acls]
+  for(nm in cls){
+    nnm <- paste0(nm,'.all')
+    Xlmh[,(nm):=paste0(Xlmh[[nm]],
+                       " (",
+                       Xlmh[[paste0(nm,'.lo')]],
+                       " - ",
+                       Xlmh[[paste0(nm,'.hi')]],
+                       ")")]
+  }
+  Xlmh
+}
+
+
 ## graph utilities
 absspace <- function(x,...) {
   format(abs(x), ..., big.mark=" ",scientific = FALSE, trim = TRUE)
@@ -148,7 +187,7 @@ ICM2[,c('ptc.av','prop.av'):=NULL]
 
 
 
-## === compile CE results
+## === compile CE results (needed for CE plot and tables)
 ## NOTE check
 IV[,table(`PT regimen`,intervention)]
 
@@ -182,19 +221,6 @@ IVc0 <- IV[,.(deaths=sum(deaths0),cost=sum(cost0),lys=sum(lys0)),
            by = .(repn,iso3,intervention,`PT regimen`)]
 IVc0 <- IVc0[,.(deaths0=mean(deaths),cost0=mean(cost),lys0=mean(lys)),
              by = .(iso3,intervention,`PT regimen`)]
-
-## data for CE plot
-CEC <- merge(IVc,IVc0)
-CEC <- merge(CEC,GDP,by='iso3',all.x=TRUE,all.y = FALSE)
-CEC[,cpda:=(cost-cost0)/(lys0-lys+1e-6)]
-
-tmp <- unique(CEC[!is.na(gdp),.(gdp,iso3)])
-lvls <- tmp[order(gdp),iso3]
-tmp[,c('intervention','PT regimen'):=NA]
-
-CEC$iso3 <- factor(CEC$iso3,levels=lvls,ordered = TRUE)
-tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
-
 
 ## =================================
 ## FIGURES
@@ -288,6 +314,18 @@ ggsave(GPB,file=here('output/figure_FQR.png'),w=12,h=5)
 
 ## === figure_CE
 
+## data for CE plot
+CEC <- merge(IVc,IVc0)
+CEC <- merge(CEC,GDP,by='iso3',all.x=TRUE,all.y = FALSE)
+CEC[,cpda:=(cost-cost0)/(lys0-lys+1e-6)]
+
+tmp <- unique(CEC[!is.na(gdp),.(gdp,iso3)])
+lvls <- tmp[order(gdp),iso3]
+tmp[,c('intervention','PT regimen'):=NA]
+
+CEC$iso3 <- factor(CEC$iso3,levels=lvls,ordered = TRUE)
+tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
+
 ## TODO swtich to LVX, DLM?
 
 ## restrict to hbmdr
@@ -336,183 +374,8 @@ ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
 ## TABLES
 ## =================================
 
-## 1/ resources (PT regimen)
-## 2/ outcomes (PT regimen not included)
-## 3/ HE: costs/incremental costs; dalys incremental dalys; ICERs
-
 ## see TABLE2 & TABLE4 but modify
 
-## === table_resources
-
-## === table_outcomes
-
-## === table_HE
-
-
-
-
-## ==================== TO PRUNE: ======================
-
-
-
-## main table
-## names(IV)[which(names(IV)=='screened')] <- 'value'
-## IV[,unique(intervention)]
-
-WRa <- IV[,.(deaths0=sum(deaths0),cost0=sum(cost0),lys0=sum(lys0)),
-         by = .(repn,intervention,`PT regimen`,g_whoregion)]
-WRc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
-         by = .(repn,intervention,`PT regimen`,g_whoregion)]
-WRb <- IVb[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
-          by = .(repn,intervention,`PT regimen`,g_whoregion)]
-
-WRa[,table(`PT regimen`,intervention)]
-
-
-WRc[`PT regimen`=="FQ",`PT regimen`:="LVX"]
-
-WR0 <- unique(WRa[,.(repn,deaths0,cost0,lys0,g_whoregion)])
-
-WR <- rbind(WRc,WRb)
-WR <- merge(WR,WR0,by=c('repn','g_whoregion'),all.x=TRUE)
-WR[,c('Dcost','Dlys'):=.(cost-cost0,lys-lys0)]
-WR[,Ddeaths:=deaths-deaths0]
-
-WR[,table(`PT regimen`,intervention)]
-
-## global numbers
-Wa <- IV[,.(deaths0=sum(deaths0),cost0=sum(cost0),lys0=sum(lys0)),
-         by = .(repn,intervention,`PT regimen`)]
-Wc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
-         by = .(repn,intervention,`PT regimen`)]
-Wb <- IVb[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
-          by = .(repn,intervention,`PT regimen`)]
-
-Wc[`PT regimen`=="FQ",`PT regimen`:="LVX"]
-
-unique(Wa[,.(repn,`PT regimen`,deaths0,cost0,lys0)])
-W0 <- unique(Wa[,.(repn,deaths0,cost0,lys0)])
-
-W <- rbind(Wc,Wb)
-W <- merge(W,W0,by='repn',all.x=TRUE)
-W[,c('Dcost','Dlys'):=.(cost-cost0,lys-lys0)]
-W[,Ddeaths:=deaths-deaths0]
-
-
-WM <- W[,.(Dcost=mean(Dcost),Dlys=mean(Dlys)),
-        by=.(`PT regimen`,intervention)]
-WM[,ICER:=-Dcost/Dlys]
-
-
-## NOTE costs: LVX < MXF; DLM < BDQ
-## function for doing by regimen and intervention
-makehilo <- function(X,cls){
-  Xm <- X[,lapply(.SD,mean),
-          by=.(`PT regimen`,intervention),
-          .SDcols=cls]
-  Xh <- X[,lapply(.SD,hi),
-          by=.(`PT regimen`,intervention),
-          .SDcols=cls]
-  Xl <- X[,lapply(.SD,lo),
-          by=.(`PT regimen`,intervention),
-          .SDcols=cls]
-  clslo <- paste0(cls,'.lo')
-  clshi <- paste0(cls,'.hi')
-  names(Xl)[names(Xl) %in% cls] <- clslo
-  names(Xh)[names(Xh) %in% cls] <- clshi
-  Xlmh <- merge(Xm,Xl,by=c('PT regimen','intervention'))
-  Xlmh <- merge(Xlmh,Xh,by=c('PT regimen','intervention'))
-  acls <- c(cls,clslo,clshi)
-  Xlmh[,(acls):=lapply(.SD,see),.SDcols=acls]
-  for(nm in cls){
-    nnm <- paste0(nm,'.all')
-    Xlmh[,(nm):=paste0(Xlmh[[nm]],
-                       " (",
-                       Xlmh[[paste0(nm,'.lo')]],
-                       " - ",
-                       Xlmh[[paste0(nm,'.hi')]],
-                       ")")]
-  }
-  Xlmh
-}
-
-## compute mean/hi/lo
-qtys <- c('deaths','cost','lys',
-          'Ddeaths','Dcost','Dlys')
-Wo <- makehilo(W,qtys)
-
-## add ICERS
-Wo <- merge(Wo,
-           W[,.(ICER=paste0(round(-mean(Dcost)/mean(Dlys)))),
-             by=.(`PT regimen`,intervention)],
-           by=c('PT regimen','intervention')
-           )
-
-## reformat
-qtys <- c('PT regimen','intervention','ICER',qtys)
-Wo <- melt(Wo[,..qtys],id=c('PT regimen','intervention'))
-Wo$intervention <- factor(Wo$intervention,
-                          levels=c("HHCM, no PT",
-                                   "PT to <5/HIV+",
-                                   "PT to <5/HIV+/TST+",
-                                   "PT to <15"),
-                          ordered = TRUE)
-Wo$`PT regimen` <- factor(Wo$`PT regimen`,
-                          levels=c("none","LVX","MXF","DLM","BDQ"),
-                          ordered = TRUE)
-
-Wo <- dcast(Wo,variable~intervention+`PT regimen`,value.var = 'value')
-setkey(Wo,variable)
-Wo <- Wo[c("cost","deaths","lys","Dcost","Ddeaths","Dlys","ICER")]
-
-
-seehere <- function(x) paste0(see(mean(x)),
-                              " (",see(lo(x))," - ",
-                              see(hi(x)),")")
-
-tmp <- W0[,lapply(.SD,seehere),.SDcols=c('deaths0','cost0','lys0')]
-tmp <- unlist(tmp)
-tmp <- tmp[c('cost0','deaths0','lys0')]
-tmp <- c(unname(tmp),rep(0,3),'-')
-
-Wo[,none:=tmp]
-nmz <- names(Wo)
-setcolorder(Wo,c('variable','none',nmz[2:14]))
-
-Wo
-fwrite(Wo,file=here('output/TABLE4.csv'))
-
-## jj
-
-WM2 <- W[,.(Dcost=mean(Dcost),Dlys=mean(Dlys),
-            Dcost.lo=lo(Dcost),Dlys.lo=lo(Dlys),
-            Dcost.hi=hi(Dcost),Dlys.hi=hi(Dlys)),
-        by=.(`PT regimen`,intervention)]
-
-
-WMR2 <- WR[,.(Dcost=mean(Dcost),Dlys=mean(Dlys),
-            Dcost.lo=lo(Dcost),Dlys.lo=lo(Dlys),
-            Dcost.hi=hi(Dcost),Dlys.hi=hi(Dlys)),
-           by=.(`PT regimen`,intervention,g_whoregion)]
-
-
-
-
-TIVS <- IVT[,.(deaths=sum(deaths),lys=sum(lys1),
-               incdeaths=sum(incdeaths),
-               prevdeaths=sum(prevdeaths),
-               inctb=sum(inctb),
-               rsatt=sum(rsatt),rratt=sum(rratt),
-               ptc=sum(ptc),hhc=sum(hhc),cost=sum(cost)),
-            by = .(repn,intervention,`PT regimen`)]
-TIVS0 <- IVT[,.(deaths=sum(deaths0),lys=sum(lys0),
-                incdeaths=sum(incdeaths0),
-                prevdeaths=sum(prevdeaths0),
-                inctb=sum(inctb0),
-                rsatt=sum(rsatt0),rratt=sum(rratt0),
-                rsatti=sum(rsatti0),rratti=sum(rratti0),
-                ptc=sum(ptc0),hhc=sum(hhc),cost=sum(cost0)),
-             by = .(repn,intervention,`PT regimen`)]
 
 IVS <- IV[,.(deaths=sum(deaths),
              lys=sum(lys1),
@@ -580,30 +443,14 @@ rsIVS0[,intervention:='No HHCM']
 rsIVS <- rbind(rsIVS,rsIVS0)
 
 
-IVS[,unique(intervention)]
-IVS[,table(intervention)]
-rrIVS[,table(intervention)] #
-rsIVS[,table(intervention)]
-IV[,table(DST,intervention)]
-IV[,unique(intervention)]
+## IVS[,unique(intervention)]
+## IVS[,table(intervention)]
+## rrIVS[,table(intervention)] #
+## rsIVS[,table(intervention)]
+## IV[,table(DST,intervention)]
+## IV[,unique(intervention)]
 
-timid <- TIVS[,.(deaths=mean(deaths),
-                 lys=mean(lys),
-                 incdeaths=mean(incdeaths),
-                 prevdeaths=mean(prevdeaths),
-                 inctb=mean(inctb),
-                 rsatt=mean(rsatt),rratt=mean(rratt),
-                 ptc=mean(ptc),hhc=mean(hhc),cost=mean(cost)),
-              by=.(intervention,`PT regimen`)]
-timid0 <- TIVS0[,.(deaths=mean(deaths),
-                   lys=mean(lys),
-                   incdeaths=mean(incdeaths),
-                   prevdeaths=mean(prevdeaths),
-                   inctb=mean(inctb),
-                   rsatt=mean(rsatt),rratt=mean(rratt),
-                   rsatti=mean(rsatti),rratti=mean(rratti),
-                   ptc=mean(ptc),hhc=mean(hhc),cost=mean(cost)),
-                by=.(intervention,`PT regimen`)]
+
 mid <- IVS[,.(deaths=mean(deaths),
               lys=mean(lys),
               incdeaths=mean(incdeaths),
@@ -668,7 +515,7 @@ rsHI <- rsIVS[,.(deaths=hi(deaths),
               by=.(intervention,`PT regimen`)]
 
 
-names(mid)
+## names(mid)
 
 
 ## formatting
@@ -692,7 +539,7 @@ A$`PT regimen` <- factor(A$`PT regimen`,
                          levels=c('none','FQ','BDQ'),
                          ordered=TRUE)
 
-fwrite(A,file=here('output/A.csv'))
+## fwrite(A,file=here('output/A.csv'))
 
 ## RR & RS
 rrX <- as.matrix(rrmid[,lapply(.SD,see),.SDcols=3:ncol(rrmid)])
@@ -749,229 +596,124 @@ AM <- AM[c('RESOURCE',keep[1:4],
 
 fwrite(AM,file=here('output/TABLE2.csv'))
 
-## NOTE not including AEs
 
-## --- figure 2c ---
-tmp <- copy(mid)
-dvd <- c(names(tmp)[3:(ncol(tmp))])
-tmp[,c(dvd):=lapply(.SD,function(x)1e2*x/hhc[1]),.SDcols=dvd]
-midm <- melt(tmp,id=c('intervention','PT regimen'))
 
-tmp <- midm[variable=='inctb']
-tmp[,variable:='prevtb'] #TODO until prev included
-midm <- rbind(midm,tmp)
+## =====================================================
 
-unique(midm$variable)
+## names(IV)[which(names(IV)=='screened')] <- 'value'
+## IV[,unique(intervention)]
 
-lls <- c('deaths', 'incdeaths','prevdeaths',
-         'prevtb','inctb','rsatt','rratt','ptc','hhc' )
-midm$variable <- factor(midm$variable,levels=rev(lls),ordered = TRUE)
-intz <- c('No HHCM','HHCM, no PT','PT to <5/HIV+/TST+','PT to <5/HIV+','PT to <15')
+WRa <- IV[,.(deaths0=sum(deaths0),cost0=sum(cost0),lys0=sum(lys0)),
+         by = .(repn,intervention,`PT regimen`,g_whoregion)]
+WRc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
+         by = .(repn,intervention,`PT regimen`,g_whoregion)]
+WRb <- IVb[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
+          by = .(repn,intervention,`PT regimen`,g_whoregion)]
 
-midm$intervention <- factor(midm$intervention,levels=(intz),ordered = TRUE)
+WRa[,table(`PT regimen`,intervention)]
 
-tosee <- midm[,unique(variable)]
-tosee <- tosee[!tosee %in% c('hhc','rsatt','rratt')]
 
-ggplot(midm[variable %in% tosee],
-       aes(intervention,value,fill=`PT regimen`))+
-    geom_bar(stat='identity',position = 'dodge')+
-    facet_wrap(~variable,scales='free')+
-    scale_fill_colorblind() +
-    theme_classic()+
-    ## ## scale_y_sqrt()+
-    ggpubr::grids() + rot45
+WRc[`PT regimen`=="FQ",`PT regimen`:="LVX"]
 
-ggsave(file=here('output/FIGURE2x.png'),w=10,h=7)
-ggsave(file=here('output/FIGURE2x.pdf'),w=10,h=7)
+WR0 <- unique(WRa[,.(repn,deaths0,cost0,lys0,g_whoregion)])
 
-## RS test
-## Figure 1
-IVDT <- IVT[,.(deaths=sum((deaths-deaths0)),
-             incdeaths=sum((incdeaths-incdeaths0)),
-             inctb=sum((inctb-inctb0)),
-             rsatt=sum((rsatt-rsatt0)),rratt=sum((rratt-rratt0)),
-             ptc=sum((ptc-ptc0)),hhc=sum(hhc)),
+WR <- rbind(WRc,WRb)
+WR <- merge(WR,WR0,by=c('repn','g_whoregion'),all.x=TRUE)
+WR[,c('Dcost','Dlys'):=.(cost-cost0,lys-lys0)]
+WR[,Ddeaths:=deaths-deaths0]
+
+WR[,table(`PT regimen`,intervention)]
+
+## global numbers
+Wa <- IV[,.(deaths0=sum(deaths0),cost0=sum(cost0),lys0=sum(lys0)),
+         by = .(repn,intervention,`PT regimen`)]
+Wc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
+         by = .(repn,intervention,`PT regimen`)]
+Wb <- IVb[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
           by = .(repn,intervention,`PT regimen`)]
-midit <- IVDT[,.(rsatt=mean(rsatt/abs(inctb)),
-               rratt=mean(rratt/abs(inctb)),
-               ptc=mean(ptc/abs(inctb)),hhc=mean(hhc/abs(inctb))),
-            by=.(intervention,`PT regimen`)]
-middt <- IVDT[,.(rsatt=mean(rsatt/abs(deaths)),
-               rratt=mean(rratt/abs(deaths)),
-               ptc=mean(ptc/abs(deaths)),hhc=mean(hhc/abs(deaths))),
-            by=.(intervention,`PT regimen`)]
-midit[,quantity:='per TB case averted']
-middt[,quantity:='per TB death averted']
-BT <- rbind(midit,middt)
-BMT <- melt(BT,id=c('intervention','PT regimen','quantity'))
-BMT[quantity=='per TB case averted']
-BMT[quantity=='per TB death averted']
 
-fwrite(BMT,file=here('output/test.csv'))
+Wc[`PT regimen`=="FQ",`PT regimen`:="LVX"]
+
+unique(Wa[,.(repn,`PT regimen`,deaths0,cost0,lys0)])
+W0 <- unique(Wa[,.(repn,deaths0,cost0,lys0)])
+
+W <- rbind(Wc,Wb)
+W <- merge(W,W0,by='repn',all.x=TRUE)
+W[,c('Dcost','Dlys'):=.(cost-cost0,lys-lys0)]
+W[,Ddeaths:=deaths-deaths0]
 
 
-GP <- ggplot(BMT,aes(intervention,value,fill=`PT regimen`)) +
-  geom_bar(stat='identity',position='dodge') +
-  facet_grid(quantity ~ variable,scales='free') +
-  scale_fill_colorblind()+
-  ylab('number') +
-  theme_classic() + ggpubr::grids() +
-  theme(axis.text.x = element_text(angle=45,hjust=1))
-GP
-
-ggsave(GP,file=here('output/test.pdf'),w=8,h=6)
-
-
-BMT[variable=='ptc'] #paper: ~ 50 ptc/c or d (higher for c)
-BMT[variable=='hhc'] #paper: ~ 100 hhc /c or d (higher for c)
-
-
-## NOTE some differences here
-## comparison appendix table
-## coprevalence is Shah
-## LTBI is Fox as before
-## progression Leo now
-timid0[,.(fracdinc=1e2*incdeaths/deaths, #36/133 ~ 27%
-          inCFR=1e2*incdeaths/inctb, #36/257 ~ 14%
-          inCDR=1e2*rsatti/inctb,
-          hhinc=1e2*inctb/hhc, #257/8e3 ~ 3%
-          hhdeaths=1e2*deaths/hhc)] #133/8e3 ~ 2%
+WM <- W[,.(Dcost=mean(Dcost),Dlys=mean(Dlys)),
+        by=.(`PT regimen`,intervention)]
+WM[,ICER:=-Dcost/Dlys]
 
 
 
-## Figure 1, but regional
-regs <- fread(here('indata/TB_burden_countries_2020-10-15.csv'))
-regs <- unique(regs[,.(iso3,g_whoregion)])
-IVT <- merge(IVT,regs,by='iso3')
-IVDTR <- IVT[,.(deaths=sum((deaths-deaths0)),
-             incdeaths=sum((incdeaths-incdeaths0)),
-             inctb=sum((inctb-inctb0)),
-             rsatt=sum((rsatt-rsatt0)),rratt=sum((rratt-rratt0)),
-             ptc=sum((ptc-ptc0)),hhc=sum(hhc)),
-             by = .(repn,intervention,`PT regimen`,g_whoregion)]
-miditr <- IVDTR[,.(rsatt=mean(rsatt/abs(inctb)),
-               rratt=mean(rratt/abs(inctb)),
-               ptc=mean(ptc/abs(inctb)),hhc=mean(hhc/abs(inctb))),
-              by=.(intervention,`PT regimen`,g_whoregion)]
-middtr <- IVDTR[,.(rsatt=mean(rsatt/abs(deaths)),
-                   rratt=mean(rratt/abs(deaths)),
-                   ptc=mean(ptc/abs(deaths)),hhc=mean(hhc/abs(deaths))),
-                by=.(intervention,`PT regimen`,g_whoregion)]
+## compute mean/hi/lo
+qtys <- c('deaths','cost','lys',
+          'Ddeaths','Dcost','Dlys')
+Wo <- makehilo(W,qtys)
 
-miditr[,quantity:='per TB case averted']
-middtr[,quantity:='per TB death averted']
+## add ICERS
+Wo <- merge(Wo,
+           W[,.(ICER=paste0(round(-mean(Dcost)/mean(Dlys)))),
+             by=.(`PT regimen`,intervention)],
+           by=c('PT regimen','intervention')
+           )
 
-BTR <- rbind(miditr,middtr)
-BMTR <- melt(BTR,id=c('intervention','PT regimen',
-                      'quantity','g_whoregion'))
+## reformat
+qtys <- c('PT regimen','intervention','ICER',qtys)
+Wo <- melt(Wo[,..qtys],id=c('PT regimen','intervention'))
+Wo$intervention <- factor(Wo$intervention,
+                          levels=c("HHCM, no PT",
+                                   "PT to <5/HIV+",
+                                   "PT to <5/HIV+/TST+",
+                                   "PT to <15"),
+                          ordered = TRUE)
+Wo$`PT regimen` <- factor(Wo$`PT regimen`,
+                          levels=c("none","LVX","MXF","DLM","BDQ"),
+                          ordered = TRUE)
 
-## Shah: around 8%
-## 7.8 (5.6-10.0)
-## getLNparms(7.8, ((5.6-10.0)/3.92)^2)
-## getAB(7.8/1e2, ((5.6-10.0)/392)^2)
-## Fox: nearer 10% weighted towards LIC
-## PSA[,mean(coprev)] #4% TODO which assumption? 739/8e3 ~ 10%
-## PSA[,mean(ltbi.prev)] #44%
+Wo <- dcast(Wo,variable~intervention+`PT regimen`,value.var = 'value')
+setkey(Wo,variable)
+Wo <- Wo[c("cost","deaths","lys","Dcost","Ddeaths","Dlys","ICER")]
 
 
-## ============
-## ============
-## graphs
+tmp <- W0[,lapply(.SD,seehere),.SDcols=c('deaths0','cost0','lys0')]
+tmp <- unlist(tmp)
+tmp <- tmp[c('cost0','deaths0','lys0')]
+tmp <- c(unname(tmp),rep(0,3),'-')
 
-## ====== new  expts
-## Figure 1 new
-midi2 <- IVD[,.(ptc.i=mean(ptc/abs(inctb)),
-                hhc.i=mean(hhc/abs(inctb))),
-            by=.(intervention,`PT regimen`)]
-midd2 <- IVD[,.(ptc.td=mean(ptc/abs(deaths)),
-                hhc.td=mean(hhc/abs(deaths)),
-                ptc.id=mean(ptc/abs(incdeaths)),
-                hhc.id=mean(hhc/abs(incdeaths)),
-                ptc.pd=mean(ptc/abs(deaths-incdeaths)),
-                hhc.pd=mean(hhc/abs(deaths-incdeaths))
-                ),
-            by=.(intervention,`PT regimen`)]
+Wo[,none:=tmp]
+nmz <- names(Wo)
+setcolorder(Wo,c('variable','none',nmz[2:14]))
+
+Wo
+fwrite(Wo,file=here('output/TABLE4.csv'))
 
 
-B1 <- melt(midi2,id=c('intervention','PT regimen'))
-B2 <- melt(midd2,id=c('intervention','PT regimen'))
-BM <- rbind(B1,B2)
-BM[,c('qty','outcome'):=tstrsplit(variable,split="\\.")]
+
+## 1/ resources (PT regimen)
+## 2/ outcomes (PT regimen not included)
+## 3/ HE: costs/incremental costs; dalys incremental dalys; ICERs
+
+## === table_resources
+
+## === table_outcomes
+
+## === table_HE
 
 
-GP <- ggplot(BM,aes(intervention,value,fill=`PT regimen`)) +
-    geom_bar(stat='identity',position='dodge') +
-    facet_grid(qty ~ outcome ,scales='free') +
-    scale_fill_colorblind()+
-    scale_y_sqrt(label=comma)+
-    ylab('Number extra') +
-    theme_classic() + ggpubr::grids() +
-    theme(axis.text.x = element_text(angle=45,hjust=1))
-GP
 
-## NOTE not sure about pd x ptc
-ggsave(GP,file=here('output/Figure1x1.pdf'),w=6,h=12)
-
-midi2 <- IVD[,.(ptc.i=mean(abs(inctb)/ptc),
-                hhc.i=mean(abs(inctb)/hhc)),
-            by=.(intervention,`PT regimen`)]
-midd2 <- IVD[,.(ptc.td=mean(abs(deaths)/ptc),
-                hhc.td=mean(abs(deaths)/hhc),
-                ptc.id=mean(abs(incdeaths)/ptc),
-                hhc.id=mean(abs(incdeaths)/hhc),
-                ptc.pd=mean(abs(deaths-incdeaths)/ptc),
-                hhc.pd=mean(abs(deaths-incdeaths)/hhc)
-                ),
-            by=.(intervention,`PT regimen`)]
+## ==================== TO PRUNE: ======================
 
 
-B1 <- melt(midi2,id=c('intervention','PT regimen'))
-B2 <- melt(midd2,id=c('intervention','PT regimen'))
-BM <- rbind(B1,B2)
-BM[,c('qty','outcome'):=tstrsplit(variable,split="\\.")]
+
+## =======================================
+## LOADING TO GOOGLE SHEETS (authors only)
+## =======================================
+
+if(FALSE){
 
 
-## checking countries etc
-tmp <- ICM1[`PT regimen`!='INH' & intervention=='PT to <15']
-tmp <- merge(tmp,WK,by='iso3')
-tmp[,lbl:=as.character(iso3)]
-tmp[`PT regimen`!='FQ',lbl:=NA]
-
-
-## =========================================
-## additional regional incremental results
-
-
-## make all incremental
-IV[,deaths:=(deaths-deaths0)]
-IV[,incdeaths:=(incdeaths-incdeaths0)]
-IV[,inctb:=(inctb-inctb0)]
-IV[,rsatt:=(rsatt-rsatt0)]
-IV[,rratt:=(rratt-rratt0)]
-IV[,ptc:=(ptc-ptc0)]
-IV[,c('deaths0','incdeaths0','inctb0','rsatt0','rratt0','ptc0'):=NULL]
-
-
-## aggregate
-hi <- function(x,qn=.975)quantile(x,prob=qn)
-lo <- function(x,qn=.025)quantile(x,prob=qn)
-K <- fread(here('indata/TB_burden_countries_2020-10-15.csv'))
-K <- unique(K[,.(iso3,g_whoregion)])
-
-IV <- merge(IV,K,by='iso3',all.x=TRUE,all.y=FALSE)
-
-IV[iso3=='ZAF' & repn==1 & acat=='[0,5)' & intervention=='PT to <15']
-
-## Global
-Global <- IV[,.(deaths=sum(deaths),incdeaths=sum(incdeaths),inctb=sum(inctb),rsatt=sum(rsatt),
-                rratt=sum(rratt),ptc=sum(ptc),hhc=sum(hhc)),by=.(repn,intervention,`PT regimen`)]
-Global.m <- Global[,.(deaths=mean(deaths),incdeaths=mean(incdeaths),inctb=mean(inctb),rsatt=mean(rsatt),
-                      rratt=mean(rratt),ptc=mean(ptc),hhc=mean(hhc)),by=.(intervention,`PT regimen`)]
-Global.h <- Global[,.(deaths=hi(deaths),incdeaths=hi(incdeaths),inctb=hi(inctb),rsatt=hi(rsatt),
-                      rratt=hi(rratt),ptc=hi(ptc),hhc=hi(hhc)),by=.(intervention,`PT regimen`)]
-Global.l <- Global[,.(deaths=lo(deaths),incdeaths=lo(incdeaths),inctb=lo(inctb),rsatt=lo(rsatt),
-                      rratt=lo(rratt),ptc=lo(ptc),hhc=lo(hhc)),by=.(intervention,`PT regimen`)]
-Global.m[,type:='mid']; Global.l[,type:='lo']; Global.h[,type:='hi'];
-Global <- rbind(Global.m,Global.l,Global.h)
-Global[,Region:='Global']
+}
