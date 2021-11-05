@@ -3,6 +3,13 @@ tbc
 
 # Notes on analysis
 
+
+## Dependencies
+
+TODO
+
+## Structure
+
 Directory structure:
 
 ```
@@ -23,7 +30,7 @@ NB data is excluded from the repo - it must be created for scripts to write larg
 - add file to write results to googledocs
 
 
-## 01.HHcontactNumbers.R
+### 01.HHcontactNumbers.R ###
 
 TODO
 - remove some of the commented sections (eg LEA, WBIL)
@@ -33,19 +40,19 @@ TODO
 - check HIV line 303/366?
 - remove HHV stuff at end?
 
-## 02.RRnumCDR.R
+### 02.RRnumCDR.R ###
 
 TODO
 - this needs swapping out for the new data
 
-## 03.DResistance.R
+### 03.DResistance.R ###
 
 This file builds the base PSA object for onward analyses.
 
 TODO
 - update and rename parameter file
 
-## 04.calculations.R
+### 04.calculations.R ###
 
 This file performs the calculations. 
 
@@ -63,10 +70,16 @@ utils/
 TODO
 - harmonize new and new2 parms
 
-### ModelFuns.R ###
+#### ModelFuns.R ####
 
 TODO
 - various
 
-## 05.outputs.R ##
+### 05.outputs.R ###
 
+Calls:
+
+utils/
+- makeLYs.R
+
+which will be a bit slow first time around
