@@ -6,8 +6,6 @@ library(here)
 source(here('R/utils/maketree.R'))      #tree structure & functions
 source(here('R/utils/ModelFuns.R'))     #parametrization & tree labeller
 
-
-
 ## data from previous analyses
 load(here('data/PSA.Rdata'))
 PSA[,value:=rrmdr_15plus_tx] #index cases
@@ -72,7 +70,6 @@ setPTeff <- function(D, #data
         if(regimen != 'INH') D[DST=='FS' & hiv==0 & acat=='[5,15)',RR:=RR1]
         if(regimen=='BDQ') D[DST=='FR' & hiv==0 & acat=='[5,15)',RR:=RR1]
     }
-
 }
 
 ## cost things -
@@ -87,57 +84,70 @@ setCosts <- function(D, #data
                      regimen=c('INH','FQ','BDQ'), #efficacy only
                      rgc="BDQ"){   #if BDQ eff, is it BDQ or DLM costs? if FQ is it MXF or LVX?
 
-    ## cost of TB screen - per child HH contact (both CXR + GXP)
-    D[,c_tbscreen := c_hh_visit +
-                        fracSymptomatic * (c_cxr_exam +
-                                           c_opd_visit)+
-                        fracSymptomatic *
-                        ifelse(acat=='[0,5)',
-                               c_xpert_test.04,
-                               c_xpert_test.514)]
+  ## cost of TB screen - per child HH contact (both CXR + GXP)
+  D[,c_tbscreen := c_hh_visit +
+       fracSymptomatic * (c_cxr_exam +
+                          c_opd_visit)+
+       fracSymptomatic *
+       ifelse(acat=='[0,5)',
+              c_xpert_test.04,
+              c_xpert_test.514)]
 
-    ## costs of treatment of prevalent TB: note OPD visit not included
-    D[,c_rsatt:= c_hiv_test + c_dstb_tx] #HIV test + ATT, not age dept
-    D[,c_rratt:= c_hiv_test +
-           ifelse(acat=='[0,5)',c_mdrtb_tx.04,c_mdrtb_tx.514)] #HIV test + MDR ATT
+  ## costs of treatment of prevalent TB: note OPD visit not included
+  D[,c_rsatt:= c_hiv_test + c_dstb_tx] #HIV test + ATT, not age dept
+  D[,c_rratt:= c_hiv_test +
+       ifelse(acat=='[0,5)',c_mdrtb_tx.04,c_mdrtb_tx.514)] #HIV test + MDR ATT
 
-    ## costs of treatment for incident TB (+/- PT): treatment, but also dx
-    ## assumes future presumptive TB proportional to how much TB there is
-    ## NOTE: incremental vs total costs & careful reporting
-    D[,c_dxrsatt:=c_rsatt +
-           (c_cxr_exam+c_opd_visit) + ifelse(acat=='[0,5)',
-                                             c_xpert_test.04,
-                                             c_xpert_test.514)]
-    D[,c_dxrratt:=c_rratt +
-           (c_cxr_exam+c_opd_visit) + ifelse(acat=='[0,5)',
-                                             c_xpert_test.04,
-                                             c_xpert_test.514)]
+  ## costs of treatment for incident TB (+/- PT): treatment, but also dx
+  ## assumes future presumptive TB proportional to how much TB there is
+  ## NOTE: incremental vs total costs & careful reporting
+  D[,c_dxrsatt:=c_rsatt +
+       (c_cxr_exam+c_opd_visit) + ifelse(acat=='[0,5)',
+                                         c_xpert_test.04,
+                                         c_xpert_test.514)]
+  D[,c_dxrratt:=c_rratt +
+       (c_cxr_exam+c_opd_visit) + ifelse(acat=='[0,5)',
+                                         c_xpert_test.04,
+                                         c_xpert_test.514)]
 
+  ## PT screen costs (depends strategy)
+  D[,c_ptscreen:=0] #applies to 2 No PT options & 'PT to <15' where no screening needed
+  if(intervention=='PT to <5/HIV+/TST+'){
+    D[acat=='[5,15)',c_ptscreen:=(c_hiv_test+c_tst_test)] #NOTE assumes all get both, could change
+  }
+  if(intervention=='PT to <5/HIV+'){
+    D[acat=='[5,15)',c_ptscreen:=c_hiv_test] #
+  }
 
-    ## PT screen costs (depends strategy)
-    D[,c_ptscreen:=0] #applies to 2 No PT options & 'PT to <15' where no screening needed
-    if(intervention=='PT to <5/HIV+/TST+'){
-        D[acat=='[5,15)',c_ptscreen:=(c_hiv_test+c_tst_test)] #NOTE assumes all get both, could change
-    }
-    if(intervention=='PT to <5/HIV+'){
-        D[acat=='[5,15)',c_ptscreen:=c_hiv_test] #
-    }
-
-    ## PT costs: NB PTcov is applied by onward computation
-    D[,c_pt:=0.0] #for safety & no PT
-    if(regimen=='INH'){D[,c_pt:=c_tpt_fu + c_aes_INH * fracAE + c_monit_INH + c_tpt_INH]}
-    if(regimen=='FQ' & rgc=='MXF'){
-        D[,c_pt:=c_tpt_fu + c_aes_FQ * fracAE + c_monit_FQ + c_tpt_MXF]
-    }
-    if(regimen=='FQ' & rgc=='LVX'){
-        D[,c_pt:=c_tpt_fu + c_aes_FQ * fracAE + c_monit_FQ + c_tpt_LVX]
-    }
-    if(regimen=='BDQ' & rgc=='BDQ'){
-        D[,c_pt:=c_tpt_fu + c_aes_BDQ * fracAE + c_monit_BDQ + c_tpt_BDQ]
-    }
-    if(regimen=='BDQ' & rgc=='DLM'){
-        D[,c_pt:=c_tpt_fu + c_aes_BDQ * fracAE + c_monit_BDQ + c_tpt_DLM]
-    }
+  ## PT costs: NB PTcov is applied by onward computation
+  D[,c_pt:=0.0] #for safety & no PT
+  if(regimen=='INH'){
+    D[,c_pt:=c_tpt_fu + c_aes_INH * fracAE + c_monit_INH +
+         ifelse(acat=='[0,5)',
+                c_tpt_INH.04,
+                c_tpt_INH.514)
+      ]
+  }
+  if(regimen=='FQ' & rgc=='MXF'){
+    D[,c_pt:=c_tpt_fu + c_aes_FQ * fracAE + c_monit_FQ +
+         ifelse(acat=='[0,5)',
+                c_tpt_MXF.04,
+                c_tpt_MXF.514)
+      ]
+  }
+  if(regimen=='FQ' & rgc=='LVX'){
+    D[,c_pt:=c_tpt_fu + c_aes_FQ * fracAE + c_monit_FQ +
+         ifelse(acat=='[0,5)',
+                c_tpt_LVX.04,
+                c_tpt_LVX.514)
+      ]
+  }
+  if(regimen=='BDQ' & rgc=='BDQ'){
+    D[,c_pt:=c_tpt_fu + c_aes_BDQ * fracAE + c_monit_BDQ + c_tpt_BDQ]
+  }
+  if(regimen=='BDQ' & rgc=='DLM'){
+    D[,c_pt:=c_tpt_fu + c_aes_BDQ * fracAE + c_monit_BDQ + c_tpt_DLM]
+  }
 
 }
 
@@ -185,12 +195,6 @@ PSA[DST!='RS',pRSATT:=0.0]      #no RR coprev treated as RS, ie rrCDR=1 TODO che
 ## === PT to <5/HIV
 PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
 
-## ## --- (INH)
-## setPTeff(PSA,regimen='INH') # set PT efficacy
-## PSA <- runallfuns(PSA)      #calculate
-## I1H <- resultnoHIV(PSA)
-## I1H[,intervention:='PT to <5/HIV+']; I1H[,`PT regimen`:='INH'];
-
 ## --- (no PT)
 PSA[,RR:=1.0] # set PT efficacy
 setCosts(PSA,intervention='No HHCM',regimen="None")
@@ -225,18 +229,6 @@ I1Bb[,intervention:='PT to <5/HIV+']; I1Bb[,`PT regimen`:='DLM'];
 ## === PT to <15
 PSA[,PTcov:=1]                         #set coverages
 
-## ## --- (INH)
-## setPTeff(PSA,regimen='INH') # set PT efficacy
-## PSA <- runallfuns(PSA)
-## I2H <- resultnoHIV(PSA)
-## I2H[,intervention:='PT to <15'];I2H[,`PT regimen`:='INH'];
-
-## ## --- (no PT)
-## PSA[,RR:=1.0] # set PT efficacy
-## PSA <- runallfuns(PSA)      #calculate
-## I2H <- resultnoHIV(PSA)
-## I2H[,intervention:='HHCM, no PT']; I2H[,`PT regimen`:='none'];
-
 ## --- (FQ)
 setPTeff(PSA,regimen='FQ') # set PT efficacy
 setCosts(PSA,intervention='PT to <15',regimen="FQ",rgc="LVX")
@@ -265,18 +257,6 @@ I2Bb[,intervention:='PT to <15'];I2Bb[,`PT regimen`:='DLM']
 PSA[,PTcov:=0.0]
 PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
 PSA[acat=='[5,15)' & hiv==0, PTcov:=ltbi.prev] # all & only those with LTBI among >5/H+
-
-## ## --- (INH)
-## setPTeff(PSA,regimen='INH',tst='+ve') # set PT efficacy
-## PSA <- runallfuns(PSA)
-## I3H <- resultnoHIV(PSA)
-## I3H[,intervention:='PT to <5/HIV+/TST+'];I3H[,`PT regimen`:='INH'];
-
-## ## --- (no PT)
-## PSA[,RR:=1.0] # set PT efficacy
-## PSA <- runallfuns(PSA)      #calculate
-## I3H <- resultnoHIV(PSA)
-## I3H[,intervention:='HHCM, no PT']; I3H[,`PT regimen`:='none'];
 
 ## --- (FQ)
 setPTeff(PSA,regimen='FQ',tst='+ve') # set PT efficacy
@@ -381,9 +361,7 @@ cat('Data made!\n')
 ## join
 IV <- rbindlist(list(
   I1H,I1F,I1B,
-  ## I2H,
   I2F,I2B,
-  ## I3H,
   I3F,I3B))
 I0[,`PT regimen`:=NULL]
 I0[,intervention:=NULL]
@@ -430,12 +408,4 @@ IVT <- merge(IVT,TI0H[,..tojoin],
             all.x=TRUE,allow.cartesian = TRUE)
 
 
-
-## TODO consider some aggregations before saving
 save(IVT,file=here('data/IVT.Rdata')) # NOTE this is biggish
-
-
-rm(I0,
-   I1H,I1F,I1B,
-   ## I2H,
-   I2F,I2B)

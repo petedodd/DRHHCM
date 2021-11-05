@@ -28,9 +28,9 @@ NB data is excluded from the repo - it must be created for scripts to write larg
 TODO
 - remove some of the commented sections (eg LEA, WBIL)
 - pulmo restrict?
-- update CDR
-- HIV proportion from est?
-- check HIV line 303/366
+- update CDR?
+- HIV proportion from est??
+- check HIV line 303/366?
 - remove HHV stuff at end?
 
 ## 02.RRnumCDR.R
