@@ -1,6 +1,11 @@
 ## calculations from outputs 
 rm(list=ls())
 
+
+## =================================
+## PACKAGES
+## =================================
+
 library(here)
 library(data.table)
 library(ggplot2)
@@ -9,14 +14,21 @@ library(ggthemes)
 library(ggpubr)
 library(ggrepel)
 
-## looking at big numbers
+
+## =================================
+## UTILITY FUNCTIONS
+## =================================
+
+
+## data utilities
 see <- function(x,ns=3)formatC(signif(x,ns),big.mark = ",",format='fg') #for reading big numbers
 lo <- function(x) quantile(x,.025)
 hi <- function(x) quantile(x,.975)
 tv <- function(x) tableHTML::tableHTML(x) #looking at tables
+fmean <- function(x) mean(x[is.finite(x)]) #a mean for finite (no NA or Inf)
 
-## utilities
-absspace <- function(x,...) {             #works
+## graph utilities
+absspace <- function(x,...) {
   format(abs(x), ..., big.mark=" ",scientific = FALSE, trim = TRUE)
 }
 rot45 <- theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -28,6 +40,11 @@ pnlth <- theme(
   legend.position = 'top',
   panel.border = element_rect(colour = "black",fill=NA)
 )
+
+
+## =================================
+## DATA
+## =================================
 
 ## load or create LYs
 source(here('R/utils/makeLYs.R'))
@@ -99,6 +116,38 @@ BMR$intervention <- factor(BMR$intervention,
 
 BMR <- BMR[!is.na(intervention)]        #TODO check
 
+
+## === data for FQR figures
+
+## NNT vs prop RR that are FQR (by country)
+IVC <- IV[,.(deaths=sum((deaths-deaths0)),inctb=sum((inctb-inctb0)),
+             rsatt=sum((rsatt-rsatt0)),rratt=sum((rratt-rratt0)),
+             ptc=sum((ptc-ptc0))),
+          by = .(repn,iso3,intervention,`PT regimen`)]
+
+ICM1 <- IVC[,.(ptc=mean(ptc/abs(inctb))),
+            by=.(iso3,intervention,`PT regimen`)]
+ICM2 <- IVC[,.(ptc=mean(ptc/abs(deaths))),
+            by=.(iso3,intervention,`PT regimen`)]
+
+ICM1 <- merge(ICM1,DX,by='iso3',all.x=TRUE)
+ICM2 <- merge(ICM2,DX,by='iso3',all.x=TRUE)
+
+## fill in NAs by region TODO check
+ICM1 <- merge(ICM1,WK,by='iso3',all.x=TRUE)
+ICM2 <- merge(ICM2,WK,by='iso3',all.x=TRUE)
+
+ICM1[,c('ptc.av','prop.av'):=.(fmean(ptc),fmean(prop)),by=.(g_whoregion,intervention,`PT regimen`)]
+ICM2[,c('ptc.av','prop.av'):=.(fmean(ptc),fmean(prop)),by=.(g_whoregion,intervention,`PT regimen`)]
+
+ICM1[!is.finite(ptc),ptc:=ptc.av]; ICM2[!is.finite(ptc),ptc:=ptc.av]
+ICM1[!is.finite(prop),prop:=prop.av]; ICM2[!is.finite(prop),prop:=prop.av];
+
+ICM1[,c('ptc.av','prop.av'):=NULL]
+ICM2[,c('ptc.av','prop.av'):=NULL]
+
+
+
 ## === compile CE results
 ## NOTE check
 IV[,table(`PT regimen`,intervention)]
@@ -169,13 +218,77 @@ ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
 
 ## === figure_FQR
 
-## FIGURE 3
+## -- panel a
 
+## checking countries etc
+tmp <- ICM1[`PT regimen`!='INH' & intervention=='PT to <15']
+tmp[,lbl:=as.character(iso3)]
+tmp[`PT regimen`!='FQ',lbl:=NA]
+tmp[,region:=g_whoregion]
+
+## face validity checks
+GPd <- ggplot(tmp,
+              aes(prop,ptc,col=region,shape=`PT regimen`)) +
+  geom_point() +
+  scale_x_continuous(label=percent) +
+  guides(shape='none')+
+  scale_color_colorblind(position='top')+ 
+  xlab('Proportion of RR/MDR in children that is FQR')+
+  ylab('PT courses to prevent a TB case')+
+  expand_limits(y=0) +
+  geom_text_repel(aes(label=lbl))+
+  theme_classic() + ggpubr::grids()+
+  theme(legend.position = c(0.2,0.8))+
+  guides(colour = guide_legend(nrow = 1))
+## GPd
+
+ggsave(GPd,file=here('output/figure.labelled.FQRscatter.pdf'),w=18,h=15)
+
+
+## plot
+GPa <- ggplot(tmp,
+              aes(prop,ptc,col=`PT regimen`,shape=intervention)) +
+  geom_point() +
+  scale_x_continuous(label=percent) +
+  guides(shape='none')+
+  scale_color_colorblind(position='top')+ #not sure why not working
+  xlab('Proportion of RR/MDR in children that is FQR')+
+  ylab('PT courses to prevent a TB case')+
+  geom_smooth(method='lm')+
+  expand_limits(y=0) +
+  ggpubr::stat_cor(show.legend = FALSE)+
+  theme_classic() + ggpubr::grids()
+## GPa
+
+## -- panel b
+
+## reshape & aggregate
+tmp <- dcast(tmp,iso3+g_whoregion ~ `PT regimen`,value.var = 'ptc')
+tmp[,df:=FQ-BDQ]
+tmp <- tmp[,.(df=median(df,na.rm=TRUE)),by=.(g_whoregion)]
+tmp <- tmp[order(as.character(g_whoregion))]
+tmp[,region:=g_whoregion]
+tmp$region <- factor(tmp$region,levels=unique(tmp$region),
+                      ordered=TRUE)
+
+## plot
+GPb <- ggplot(tmp,aes(region,df)) +
+    geom_bar(stat='identity') +
+    xlab('Region') +
+    ylab('Median difference in PT courses per case prevented')+
+    theme_classic() + ggpubr::grids()
+## GPb
+
+## combine
+GPB <- ggarrange(GPa,GPb,nrow=1,labels=c('A','B'))
+
+ggsave(GPB,file=here('output/figure_FQR.eps'),w=12,h=5)
+ggsave(GPB,file=here('output/figure_FQR.png'),w=12,h=5)
 
 
 ## === figure_CE
 
-## TODO swtich to LVX, DLM
+## TODO swtich to LVX, DLM?
 
 ## restrict to hbmdr
 CECR <- CEC[cpda>0 & iso3 %in% unique(tmp$iso3)]
@@ -814,100 +927,6 @@ BM <- rbind(B1,B2)
 BM[,c('qty','outcome'):=tstrsplit(variable,split="\\.")]
 
 
-
-
-## figure 2
-## NNT vs prop RR that are FQR (by country)
-IVC <- IV[,.(deaths=sum((deaths-deaths0)),inctb=sum((inctb-inctb0)),
-             rsatt=sum((rsatt-rsatt0)),rratt=sum((rratt-rratt0)),
-             ptc=sum((ptc-ptc0))),
-          by = .(repn,iso3,intervention,`PT regimen`)]
-
-ICM1 <- IVC[,.(ptc=mean(ptc/abs(inctb))),
-            by=.(iso3,intervention,`PT regimen`)]
-ICM2 <- IVC[,.(ptc=mean(ptc/abs(deaths))),
-            by=.(iso3,intervention,`PT regimen`)]
-## TODO lo/hi
-
-ICM1 <- merge(ICM1,DX,by='iso3',all.x=TRUE)
-ICM2 <- merge(ICM2,DX,by='iso3',all.x=TRUE)
-
-## fill in NAs by region TODO check
-ICM1 <- merge(ICM1,WK,by='iso3',all.x=TRUE)
-ICM2 <- merge(ICM2,WK,by='iso3',all.x=TRUE)
-fmean <- function(x) mean(x[is.finite(x)]) #a mean for finite (no NA or Inf)
-
-ICM1[,c('ptc.av','prop.av'):=.(fmean(ptc),fmean(prop)),by=.(g_whoregion,intervention,`PT regimen`)]
-ICM2[,c('ptc.av','prop.av'):=.(fmean(ptc),fmean(prop)),by=.(g_whoregion,intervention,`PT regimen`)]
-
-ICM1[!is.finite(ptc),ptc:=ptc.av]; ICM2[!is.finite(ptc),ptc:=ptc.av]
-ICM1[!is.finite(prop),prop:=prop.av]; ICM2[!is.finite(prop),prop:=prop.av];
-
-ICM1[,c('ptc.av','prop.av'):=NULL]
-ICM2[,c('ptc.av','prop.av'):=NULL]
-
-
-
-## ----- bar plots suggested by Finn
-## Armenia - ARM
-## Azerbaijan - AZE
-## Belarus - BLR
-## Estonia - EST
-## Georgia - GEO
-## Kazakhstan - KAZ
-## Kyrgyzstan - KGZ
-## Latvia - LVA
-## Lithuania - LTU
-## Moldova - MDA
-## Russia - RUS
-## Tajikistan - TJK
-## Turkmenistan - TKM
-## Ukraine - UKR
-## Uzbekistan - UZB
-
-FSU <- c(
-'ARM',
-'AZE',
-'BLR',
-'EST',
-'GEO',
-'KAZ',
-'KGZ',
-'LVA',
-'LTU',
-'MDA',
-'RUS',
-'TJK',
-'TKM',
-'UKR',
-'UZB'
-)
-length(FSU)
-WK[,region:=g_whoregion] #new key
-WK[iso3 %in% FSU,region:='FSU']
-
-## TODO check NAs
-summary(tmp)
-
-## amke data
-tmp <- ICM1[`PT regimen`!='INH' & intervention=='PT to <15']
-tmp[iso3 %in% FSU]
-tmp <- merge(tmp,WK,by='iso3')
-tmp <- dcast(tmp,iso3+region ~ `PT regimen`,value.var = 'ptc')
-tmp[,df:=FQ-BDQ]
-tmp <- tmp[,.(df=median(df,na.rm=TRUE)),by=.(region)]
-tmp <- tmp[order(as.character(region))]
-tmp$region <- factor(tmp$region,levels=unique(tmp$region),
-                      ordered=TRUE)
-
-
-GPB <- ggarrange(GPa,GPb,nrow=1,labels=c('A','B'))
-GPB
-
-ggsave(GPB,file=here('output/FIGURE3.pdf'),w=12,h=5)
-ggsave(GPB,file=here('output/FIGURE3.png'),w=12,h=5)
-
-
 ## checking countries etc
 tmp <- ICM1[`PT regimen`!='INH' & intervention=='PT to <15']
 tmp <- merge(tmp,WK,by='iso3')
@@ -951,106 +970,3 @@ Global.l <- Global[,.(deaths=lo(deaths),incdeaths=lo(incdeaths),inctb=lo(inctb),
 Global.m[,type:='mid']; Global.l[,type:='lo']; Global.h[,type:='hi'];
 Global <- rbind(Global.m,Global.l,Global.h)
 Global[,Region:='Global']
-
-save(Global,file=here('data/Global.Rdata'))
-fwrite(Global,file=here('output/Global.csv'))
-
-
-
-## Regional
-Regional <- IV[,.(deaths=sum(deaths),incdeaths=sum(incdeaths),inctb=sum(inctb),rsatt=sum(rsatt),
-                  rratt=sum(rratt),ptc=sum(ptc),hhc=sum(hhc)),
-               by=.(repn,g_whoregion,intervention,`PT regimen`)]
-Regional.m <- Regional[,.(deaths=mean(deaths),incdeaths=mean(incdeaths),inctb=mean(inctb),rsatt=mean(rsatt),
-                          rratt=mean(rratt),ptc=mean(ptc),hhc=mean(hhc)),
-                       by=.(Region=g_whoregion,intervention,`PT regimen`)]
-Regional.h <- Regional[,.(deaths=hi(deaths),incdeaths=hi(incdeaths),inctb=hi(inctb),rsatt=hi(rsatt),
-                          rratt=hi(rratt),ptc=hi(ptc),hhc=hi(hhc)),
-                       by=.(Region=g_whoregion,intervention,`PT regimen`)]
-Regional.l <- Regional[,.(deaths=lo(deaths),incdeaths=lo(incdeaths),inctb=lo(inctb),rsatt=lo(rsatt),
-                          rratt=lo(rratt),ptc=lo(ptc),hhc=lo(hhc)),
-                       by=.(Region=g_whoregion,intervention,`PT regimen`)]
-Regional.m[,type:='mid']; Regional.l[,type:='lo']; Regional.h[,type:='hi'];
-Regional <- rbind(Regional.m,Regional.l,Regional.h)
-
-save(Regional,file=here('data/Regional.Rdata'))
-fwrite(Regional,file=here('output/Regional.csv'))
-
-
-
-## Global Age
-GlobalA <- IV[,.(deaths=sum(deaths),incdeaths=sum(incdeaths),inctb=sum(inctb),rsatt=sum(rsatt),
-                rratt=sum(rratt),ptc=sum(ptc),hhc=sum(hhc)),by=.(repn,acat,intervention,`PT regimen`)]
-GlobalA.m <- GlobalA[,.(deaths=mean(deaths),incdeaths=mean(incdeaths),inctb=mean(inctb),rsatt=mean(rsatt),
-                      rratt=mean(rratt),ptc=mean(ptc),hhc=mean(hhc)),by=.(acat,intervention,`PT regimen`)]
-GlobalA.h <- GlobalA[,.(deaths=hi(deaths),incdeaths=hi(incdeaths),inctb=hi(inctb),rsatt=hi(rsatt),
-                      rratt=hi(rratt),ptc=hi(ptc),hhc=hi(hhc)),by=.(acat,intervention,`PT regimen`)]
-GlobalA.l <- GlobalA[,.(deaths=lo(deaths),incdeaths=lo(incdeaths),inctb=lo(inctb),rsatt=lo(rsatt),
-                      rratt=lo(rratt),ptc=lo(ptc),hhc=lo(hhc)),by=.(acat,intervention,`PT regimen`)]
-GlobalA.m[,type:='mid']; GlobalA.l[,type:='lo']; GlobalA.h[,type:='hi'];
-GlobalA <- rbind(GlobalA.m,GlobalA.l,GlobalA.h)
-GlobalA[,Region:='Global']
-
-save(GlobalA,file=here('data/GlobalA.Rdata'))
-fwrite(GlobalA,file=here('output/GlobalA.csv'))
-
-
-
-## Regional
-RegionalA <- IV[,.(deaths=sum(deaths),incdeaths=sum(incdeaths),inctb=sum(inctb),rsatt=sum(rsatt),
-                  rratt=sum(rratt),ptc=sum(ptc),hhc=sum(hhc)),
-               by=.(repn,acat,g_whoregion,intervention,`PT regimen`)]
-RegionalA.m <- RegionalA[,.(deaths=mean(deaths),incdeaths=mean(incdeaths),inctb=mean(inctb),rsatt=mean(rsatt),
-                          rratt=mean(rratt),ptc=mean(ptc),hhc=mean(hhc)),
-                       by=.(acat,Region=g_whoregion,intervention,`PT regimen`)]
-RegionalA.h <- RegionalA[,.(deaths=hi(deaths),incdeaths=hi(incdeaths),inctb=hi(inctb),rsatt=hi(rsatt),
-                          rratt=hi(rratt),ptc=hi(ptc),hhc=hi(hhc)),
-                       by=.(acat,Region=g_whoregion,intervention,`PT regimen`)]
-RegionalA.l <- RegionalA[,.(deaths=lo(deaths),incdeaths=lo(incdeaths),inctb=lo(inctb),rsatt=lo(rsatt),
-                          rratt=lo(rratt),ptc=lo(ptc),hhc=lo(hhc)),
-                       by=.(acat,Region=g_whoregion,intervention,`PT regimen`)]
-RegionalA.m[,type:='mid']; RegionalA.l[,type:='lo']; RegionalA.h[,type:='hi'];
-RegionalA <- rbind(RegionalA.m,RegionalA.l,RegionalA.h)
-
-save(RegionalA,file=here('data/RegionalA.Rdata'))
-fwrite(RegionalA,file=here('output/RegionalA.csv'))
-
-
-## Global by DST
-GlobalDST <- IV[,.(deaths=sum(deaths),incdeaths=sum(incdeaths),inctb=sum(inctb),
-                   rsatt=sum(rsatt),
-                   rratt=sum(rratt),ptc=sum(ptc),hhc=sum(hhc)),
-                by=.(repn,intervention,`PT regimen`,DST)]
-
-GlobalDST.m <- GlobalDST[,.(deaths=mean(deaths),incdeaths=mean(incdeaths),
-                            inctb=mean(inctb),rsatt=mean(rsatt),
-                      rratt=mean(rratt),ptc=mean(ptc),hhc=mean(hhc)),
-                   by=.(intervention,`PT regimen`,DST)]
-GlobalDST.h <- GlobalDST[,.(deaths=hi(deaths),incdeaths=hi(incdeaths),
-                            inctb=hi(inctb),rsatt=hi(rsatt),
-                            rratt=hi(rratt),ptc=hi(ptc),hhc=hi(hhc)),
-                         by=.(intervention,`PT regimen`,DST)]
-GlobalDST.l <- GlobalDST[,.(deaths=lo(deaths),incdeaths=lo(incdeaths),
-                            inctb=lo(inctb),rsatt=lo(rsatt),
-                            rratt=lo(rratt),ptc=lo(ptc),hhc=lo(hhc)),
-                         by=.(intervention,`PT regimen`,DST)]
-GlobalDST.m[,type:='mid']; GlobalDST.l[,type:='lo']; GlobalDST.h[,type:='hi'];
-GlobalDST <- rbind(GlobalDST.m,GlobalDST.l,GlobalDST.h)
-GlobalDST[,Region:='Global']
-
-save(GlobalDST,file=here('data/GlobalDST.Rdata'))
-fwrite(GlobalDST,file=here('output/GlobalDST.csv'))
-
-
-
-
-## Regional by DST
-RegionalDST <- IV[,.(deaths=sum(deaths),incdeaths=sum(incdeaths),inctb=sum(inctb),
-                   rsatt=sum(rsatt),
-                   rratt=sum(rratt),ptc=sum(ptc),hhc=sum(hhc)),
-                by=.(repn,intervention,`PT regimen`,DST,g_whoregion)]
-
-RegionalDST.m <- RegionalDST[,.(deaths=mean(deaths),incdeaths=mean(incdeaths),
-                            inctb=mean(inctb),rsatt=mean(rsatt),
-                            rratt=mean(rratt),ptc=mean(ptc),hhc=mean(hhc)),
-                         by=.(intervention,`PT regimen`,DST,g_whoregion)]
