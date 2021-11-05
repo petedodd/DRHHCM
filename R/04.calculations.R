@@ -418,9 +418,6 @@ IVb <- merge(IVb,I0[,..tojoin],
 save(IVb,file=here('data/IVb.Rdata')) # NOTE this is biggish
 
 
-## ## 10% sample to replace IV running on laptop etc
-## IVsmaller <- IV[repn %in% 1:10]
-## save(IVsmaller,file=here('data/IVsmaller.Rdata')) # NOTE this is biggish
 
 IVT <- rbindlist(list(TI1H,TI2H,TI3H))  #RS test
 ## NOTE including incident treatments here for checks
