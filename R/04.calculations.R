@@ -4,7 +4,7 @@ rm(list = ls())
 ## libraries etc
 library(here)
 source(here('R/utils/maketree.R'))      #tree structure & functions
-source(here('R/utils/addparams.R'))     #gets parametrization and tree labeller
+source(here('R/utils/ModelFuns.R'))     #parametrization & tree labeller
 
 
 

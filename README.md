@@ -58,16 +58,15 @@ It loads:
 
 utils/
 - maketree.R (builds decision tree)
-- addparams.R (functions for constructing necessary variables)
-- ModelFuns.R
+- ModelFuns.R (functions for constructing necessary variables)
 
 TODO
 - harmonize new and new2 parms
 
-### TODO addparams.R & ModelFuns.R
+### ModelFuns.R ###
 
 TODO
-- these need merging & various TODOs addressing
+- various
 
-## 05.outputs.R
+## 05.outputs.R ##
 
