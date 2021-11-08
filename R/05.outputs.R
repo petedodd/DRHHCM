@@ -377,6 +377,8 @@ ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
 ## see TABLE2 & TABLE4 but modify
 
 
+## === outcomes table
+
 IVS <- IV[,.(
   ## absolute
   deaths=sum(deaths),
@@ -512,157 +514,51 @@ outcomes <- dcast(out,rtype + drtype + variable ~
 
 fwrite(outcomes,file=here('output/table_outcomes.csv'))
 
-## TODO may need some thinning
+## === resources table
+
+names(DIVS)
+
+rzn <- c('hhc','ptc','rsatt','rratt')
+rznl <- c('repn','intervention','PT regimen',rzn)
+
+## total
+rez1 <- IVS[,..rznl]
+rez1 <- makehilo(rez1,cls = rzn)
+rez1[,rtype:="total"]
+
+## incremental
+setnames(DIVS,old=paste0("D",rzn),new=rzn)
+rez2 <- DIVS[,..rznl]
+rez2 <- makehilo(rez2,cls = rzn)
+rez2[,rtype:="incremental"]
 
 
-## mid <- IVS[,.(deaths=mean(deaths),
-##               lys=mean(lys),
-##               incdeaths=mean(incdeaths),
-##               prevdeaths=mean(prevdeaths),
-##               inctb=mean(inctb),
-##               rsatt=mean(rsatt),rratt=mean(rratt),
-##               ptc=mean(ptc),hhc=mean(hhc),cost=mean(cost)),
-##           by=.(intervention,`PT regimen`)]
-## L <- IVS[,.(deaths=lo(deaths),
-##             lys=lo(lys),
-##             incdeaths=lo(incdeaths),
-##             prevdeaths=lo(prevdeaths),
-##             inctb=lo(inctb),
-##             rsatt=lo(rsatt),rratt=lo(rratt),
-##             ptc=lo(ptc),hhc=lo(hhc),cost=lo(cost)),
-##           by=.(intervention,`PT regimen`)]
-## HI <- IVS[,.(deaths=hi(deaths),
-##              lys=hi(lys),
-##              incdeaths=hi(incdeaths),
-##              prevdeaths=hi(prevdeaths),
-##              inctb=hi(inctb),
-##             rsatt=hi(rsatt),rratt=hi(rratt),
-##             ptc=hi(ptc),hhc=hi(hhc),cost=hi(cost)),
-##           by=.(intervention,`PT regimen`)]
+## combine & relevel
+keep <- c('rtype',rznl[-1])
+rez <- rbind(rez1[,..keep],rez2[,..keep])
 
-## ## RS & RR
-## rrmid <- rrIVS[,.(deaths=mean(deaths),
-##                   lys=mean(lys),
-##                   incdeaths=mean(incdeaths),
-##                   prevdeaths=mean(prevdeaths),
-##                   inctb=mean(inctb)),
-##                by=.(intervention,`PT regimen`)]
-## rrL <- rrIVS[,.(deaths=lo(deaths),
-##                 lys=lo(lys),
-##                 incdeaths=lo(incdeaths),
-##                 prevdeaths=lo(prevdeaths),
-##                 inctb=lo(inctb)),
-##              by=.(intervention,`PT regimen`)]
-## rrHI <- rrIVS[,.(deaths=hi(deaths),
-##                  lys=hi(lys),
-##                  incdeaths=hi(incdeaths),
-##                  prevdeaths=hi(prevdeaths),
-##                  inctb=hi(inctb)),
-##               by=.(intervention,`PT regimen`)]
-## rsmid <- rsIVS[,.(deaths=mean(deaths),
-##                   lys=mean(lys),
-##                   incdeaths=mean(incdeaths),
-##                   prevdeaths=mean(prevdeaths),
-##                   inctb=mean(inctb)),
-##                by=.(intervention,`PT regimen`)]
-## rsL <- rsIVS[,.(deaths=lo(deaths),
-##                 lys=lo(lys),
-##                 incdeaths=lo(incdeaths),
-##                 prevdeaths=lo(prevdeaths),
-##                 inctb=lo(inctb)),
-##              by=.(intervention,`PT regimen`)]
-## rsHI <- rsIVS[,.(deaths=hi(deaths),
-##                  lys=hi(lys),
-##                  incdeaths=hi(incdeaths),
-##                  prevdeaths=hi(prevdeaths),
-##                  inctb=hi(inctb)),
-##               by=.(intervention,`PT regimen`)]
+rez <- melt(rez,id=c("rtype","intervention","PT regimen"))
+rez$rtype <- factor(rez$rtype,levels=c('total','incremental'))
+rez$variable <- factor(rez$variable,levels=rzn)
+rez$intervention <- factor(rez$intervention,
+                           levels=c("No HHCM","HHCM, no PT",
+                                    "PT to <5/HIV+/TST+","PT to <5/HIV+",
+                                    "PT to <15"))
+rez$`PT regimen` <- factor(rez$`PT regimen`,
+                           levels=c("none","FQ","BDQ"))
 
+## reshape
+resources <- dcast(rez,rtype + variable ~
+                        intervention + `PT regimen`)
 
+## change those not computed properly by above:
+resources[rtype=='total' & variable=='hhc',
+          `No HHCM_none`:='0 (0 - 0)']
+resources[rtype=='total' & variable=='ptc',
+          `HHCM, no PT_none`:='0 (0 - 0)'] #TODO check
+resources[is.na(`No HHCM_none`), `No HHCM_none`:='0 (0 - 0)']
 
-
-## ## formatting
-## X <- as.matrix(mid[,lapply(.SD,see),.SDcols=3:ncol(mid)])
-## Y <- as.matrix(L[,lapply(.SD,see),.SDcols=3:ncol(L)])
-## Z <- as.matrix(HI[,lapply(.SD,see),.SDcols=3:ncol(HI)])
-## XYZ <- paste0(X,' (',Y,' - ',Z,')')
-## XYZ <- matrix(XYZ,ncol=ncol(X),nrow=nrow(X))
-## colnames(XYZ) <- colnames(X)
-
-## A <- cbind(mid[,.(intervention,`PT regimen`)],as.data.table(XYZ))
-## A
-## A$intervention <- factor(A$intervention,
-##                          levels=c('No HHCM',
-##                                   'HHCM, no PT',
-##                                   'PT to <5/HIV+',
-##                                   'PT to <5/HIV+/TST+',
-##                                   'PT to <15'),
-##                          ordered=TRUE)
-## A$`PT regimen` <- factor(A$`PT regimen`,
-##                          levels=c('none','FQ','BDQ'),
-##                          ordered=TRUE)
-
-## ## fwrite(A,file=here('output/A.csv'))
-
-## ## RR & RS
-## rrX <- as.matrix(rrmid[,lapply(.SD,see),.SDcols=3:ncol(rrmid)])
-## rrY <- as.matrix(rrL[,lapply(.SD,see),.SDcols=3:ncol(rrL)])
-## rrZ <- as.matrix(rrHI[,lapply(.SD,see),.SDcols=3:ncol(rrHI)])
-## rrXYZ <- paste0(rrX,' (',rrY,' - ',rrZ,')')
-## rrXYZ <- matrix(rrXYZ,ncol=ncol(rrX),nrow=nrow(rrX))
-## colnames(rrXYZ) <- paste0('rr',colnames(rrX))
-## rrA <- cbind(rrmid[,.(intervention,`PT regimen`)],
-##              as.data.table(rrXYZ))
-## rsX <- as.matrix(rsmid[,lapply(.SD,see),.SDcols=3:ncol(rsmid)])
-## rsY <- as.matrix(rsL[,lapply(.SD,see),.SDcols=3:ncol(rsL)])
-## rsZ <- as.matrix(rsHI[,lapply(.SD,see),.SDcols=3:ncol(rsHI)])
-## rsXYZ <- paste0(rsX,' (',rsY,' - ',rsZ,')')
-## rsXYZ <- matrix(rsXYZ,ncol=ncol(rsX),nrow=nrow(rsX))
-## colnames(rsXYZ) <- paste0('rs',colnames(rsX))
-## rsA <- cbind(rsmid[,.(intervention,`PT regimen`)],
-##              as.data.table(rsXYZ))
-
-## rsAM <- melt(rsA,id=c('intervention','PT regimen'))
-## rrAM <- melt(rrA,id=c('intervention','PT regimen'))
-
-## AM <- melt(A,id=c('intervention','PT regimen'))
-## AM <- rbindlist(list(AM,rsAM,rrAM))
-## AM[,unique(variable)]
-
-## ## TODO need prevalence variables from above
-## keep <- c(
-##   'hhc',
-##   'rsatt',
-##   'rratt',
-##   'ptc',
-##   'rsinctb',
-##   'rrinctb',
-##   'inctb',
-##   'rrprevtb', #TODO
-##   'rrprevtb', #TODO
-##   'prevtb',   #TODO
-##   'incdeaths',
-##   'prevdeaths',
-##   'deaths',
-##   'lys',
-##   'cost')
-
-## AM <- dcast(AM[variable %in% keep],
-##             variable ~ intervention + `PT regimen`,value='value')
-## AM['hhc']$`No HHCM_none` <- '0 (0 - 0)'
-
-## setkey(AM,variable)
-## AM <- AM[c('RESOURCE',keep[1:4],
-##            'OUTCOMES',keep[5:length(keep)])]
-## ## AM[,c('No HHCM_FQ','No HHCM_BDQ'):=NULL]
-## ## names(AM)[grepl('No',names(AM))] <- 'No HHCM'
-
-## fwrite(AM,file=here('output/TABLE2.csv'))
-
-
-## as table 2 but incremental & resources / outcomes split
-## can use AM but rmovnig rrprevtb
-
+fwrite(resources,file=here('output/table_resources.csv'))
 
 
 ## =====================================================
