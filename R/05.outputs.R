@@ -515,9 +515,6 @@ outcomes <- dcast(out,rtype + drtype + variable ~
 fwrite(outcomes,file=here('output/table_outcomes.csv'))
 
 ## === resources table
-
-names(DIVS)
-
 rzn <- c('hhc','ptc','rsatt','rratt')
 rznl <- c('repn','intervention','PT regimen',rzn)
 
@@ -560,11 +557,9 @@ resources[is.na(`No HHCM_none`), `No HHCM_none`:='0 (0 - 0)']
 
 fwrite(resources,file=here('output/table_resources.csv'))
 
+## === health economics table
 
-## =====================================================
 
-## names(IV)[which(names(IV)=='screened')] <- 'value'
-## IV[,unique(intervention)]
 
 WRa <- IV[,.(deaths0=sum(deaths0),cost0=sum(cost0),lys0=sum(lys0)),
          by = .(repn,intervention,`PT regimen`,g_whoregion)]
@@ -651,22 +646,11 @@ Wo[,none:=tmp]
 nmz <- names(Wo)
 setcolorder(Wo,c('variable','none',nmz[2:14]))
 
-Wo
-fwrite(Wo,file=here('output/TABLE4.csv'))
+Wo #TODO life-years bug: think base case not discounted (> in basecase)
 
 
-
-## 1/ resources (PT regimen)
-## 2/ outcomes (PT regimen not included)
-## 3/ HE: costs/incremental costs; dalys incremental dalys; ICERs
-
-## === table_resources
-
-## === table_outcomes
-
-## === table_HE
-
-
+fwrite(Wo,file=here('output/table_HE.csv'))
+## =====================================================
 
 
 ## =======================================

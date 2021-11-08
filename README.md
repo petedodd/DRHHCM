@@ -57,7 +57,7 @@ TODO
 This file performs the calculations. 
 
 TODO
-- remove 100 rep limitation (late)
+- remove 100 rep limitation (late adjustment, not on laptop)
 - add fracSymptomatic & fracAE to parms
 - various checks and comments to remove
 
@@ -83,3 +83,7 @@ utils/
 - makeLYs.R
 
 which will be a bit slow first time around
+
+TODO
+- life-years bug
+- see the few flagged checks in script
