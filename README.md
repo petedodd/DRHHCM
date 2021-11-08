@@ -87,3 +87,8 @@ which will be a bit slow first time around
 TODO
 - life-years bug
 - see the few flagged checks in script
+
+
+## Other processing TODOs ##
+
+- pretty googlesheets drawing on the sheets where data is written, for paper inclusion

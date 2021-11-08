@@ -674,5 +674,6 @@ if(FALSE){
   ## read & upload relevant data
   upload.to.sheets("table_resources.csv",shid)
   upload.to.sheets("table_outcomes.csv",shid)
+  upload.to.sheets("table_HE.csv",shid)
 
 }
