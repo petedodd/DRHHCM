@@ -13,7 +13,7 @@ library(scales)
 library(ggthemes)
 library(ggpubr)
 library(ggrepel)
-
+library(glue)
 
 ## =================================
 ## UTILITY FUNCTIONS
@@ -674,18 +674,21 @@ fwrite(Wo,file=here('output/TABLE4.csv'))
 ## =======================================
 
 if(FALSE){
-
   library(googlesheets4)
 
-  ## TODO rewrite as f (url,fn,dr)
-  
-  ## create an ID to access the googlesheets results sheet
-  "https://docs.google.com/spreadsheets/d/1leFkszUMRhR7i2iLgEWbnO1bbHlCq1mE8ikYYMaVG24/edit#gid=0"%>%
-  as_sheets_id() %>%
-  as.character() -> shid
+  ## setup - only accessible to those with access to this sheet
+  yourl <- "https://docs.google.com/spreadsheets/d/1leFkszUMRhR7i2iLgEWbnO1bbHlCq1mE8ikYYMaVG24/edit#gid=0"
+  shid <- as.character(as_sheets_id(yourl))
 
+  ## utility function
+  upload.to.sheets <- function(filename,sheetid){
+    fn <- glue(here('output/{filename}'))
+    tmp <- fread(file=fn)
+    write_sheet(tmp,sheetid,sheet=gsub("\\.csv","",filename))
+  }
 
-  ## reformatting etc needed
-  test <- fread(file=here('outout/test.csv'))
-  write_sheet(test,shid,sheet='test')
+  ## read & upload relevant data
+  upload.to.sheets("table_resources.csv",shid)
+  upload.to.sheets("table_outcomes.csv",shid)
+
 }
