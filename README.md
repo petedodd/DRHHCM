@@ -24,10 +24,9 @@ Directory structure:
 NB data is excluded from the repo - it must be created for scripts to write large temporary data to.
 
 ## TODO other changes
-- need to include the resampling for FQR
+- need to include the resampling for FQR 
+(/home/pjd/Dropbox/Holocron/tmp/hhmdrstaging/dr)
 - need to include the costs
-- probably need to remove the RRcdr file (after changing)?
-- add file to write results to googledocs
 
 
 ### 01.HHcontactNumbers.R ###
@@ -42,15 +41,10 @@ TODO
 
 ### 02.RRnumCDR.R ###
 
-TODO
-- this needs swapping out for the new data
-
 ### 03.DResistance.R ###
 
 This file builds the base PSA object for onward analyses.
 
-TODO
-- update and rename parameter file
 
 ### 04.calculations.R ###
 
@@ -67,8 +61,6 @@ utils/
 - maketree.R (builds decision tree)
 - ModelFuns.R (functions for constructing necessary variables)
 
-TODO
-- harmonize new and new2 parms
 
 #### ModelFuns.R ####
 

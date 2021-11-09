@@ -47,8 +47,6 @@ E <- fread(here('indata/TB_burden_countries_2020-10-15.csv'))
 E <- E[year==2019]                      #restrict
 ## merge
 D <- merge(N,E,by=c('country','iso2','iso3','iso_numeric','g_whoregion','year'))
-## W <- fread(here('indata/WBIL.csv'))           #TODO update & link in
-
 
 ## === load WHO age-specific incidence estimates
 A <- fread(here('indata/TB_burden_age_sex_2020-10-15.csv'))
@@ -59,7 +57,6 @@ A <- A[sex!='a']
 A <- A[age_group %in% c('0-4','0-14','5-14')]
 A <- A[age_group %in% c('0-14')]
 A
-
 
 rmn <- function(x) round(mean(x,na.rm=TRUE))
 
@@ -199,7 +196,6 @@ rm(list=ls())
 load(here('data/D.Rdata'))     #load parent data - from above
 load(here('indata/U5.Rdata'))  #load HH size predictions - prev work
 load(here('indata/O5.Rdata'))  #load HH size predictions - prev work
-## load(here('indata/LEA.Rdata')) #load life-expectancy data
 
 ## reshape
 DL <- melt(D,id.vars = c("iso3","country","g_whoregion",#
@@ -259,10 +255,6 @@ DL[,(wcols):=lapply(wcols,function(x){
   x
 }),by=.(g_whoregion,acat,sex)]
 
-
-## --- merge LEA
-## LEAW <- dcast(LEA[,.(iso3,agegp,LE)],iso3~agegp,value.var='LE')
-## DL <- merge(DL,LEAW,by='iso3',all.x=TRUE)
 
 ## fill in NAs with regional average
 wcols <- names(DL)[(ncol(DL)-3):ncol(DL)]
@@ -351,12 +343,6 @@ save(DLC,file=here('data/DLC.Rdata'))
 ## ====== same but for 5-15
 load(here('data/DL.Rdata'))
 
-## TODO remove
-## ## simplifying for u5 only
-## DL[,LE:=(`[5,10)`+`[10,15)`)/2]
-## DL[,`[0,1)`:=NULL]; DL[,`[1,5)`:=NULL]; DL[,`[5,10)`:=NULL];
-## DL[,`[10,15)`:=NULL]; 
-
 ## country level version
 DLO <- unique(DL[,.(iso3,g_whoregion,
                     cdr514,cdr514ab)])
@@ -399,10 +385,3 @@ save(ohhc,file=here('data/ohhc.Rdata'))
 
 DLO <- merge(DLO,ohhc,by='iso3')
 save(DLO,file=here('data/DLO.Rdata'))
-
-## ## === household visits
-## load(here('data/DL.Rdata'))
-## DL <- unique(DL[,.(iso3,g_whoregion,acat,sex,value)])
-## HHV <- DL[,.(visits=sum(value)),by=.(iso3,g_whoregion)] #TODO this is wrong and to be removed
-
-## save(HHV,file=here('data/HHV.Rdata'))
