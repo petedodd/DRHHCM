@@ -21,7 +21,7 @@ library(here)
 ## also need coprev, CFRnotx, progn: take these for now from old functions, using same parms
 
 ## read in data & build distributions (second version with automatic test output)
-PD <- read.csv(here('indata/PTBHHCTnew2.csv'))
+PD <- read.csv(here('indata/DRHHCMparms.csv'))
 PZ <- parse.parmtable(data = PD) #no test
 ## PZ <- parse.parmtable(data = PD, #test!
 ##                       outfile=here('test/zzout.csv'),

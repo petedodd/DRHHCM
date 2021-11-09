@@ -5,7 +5,7 @@ library(here)
 library(data.table)
 library(HEdtree)
 
-PZ <- read.csv(here('indata/PTBHHCTnew.csv')) #TODO check most recent
+PZ <- read.csv(here('indata/DRHHCMparms.csv')) #parameter table
 PZ <- parse.parmtable(PZ)               #for concordance
 
 load(here('indata/FRF.Rdata')) #TODO need to include script & move to data/
@@ -80,7 +80,7 @@ PSA[,c('cdr.a','cdr.b'):=.(cm*cab,(1-cm)*cab)]
 PSA[,c('cdr04','cdr04ab','cdr514','cdr514ab'):=NULL]
 PSA[,c('cm','cab'):=NULL]
 
-## jj
+
 ## merge in secondline data NOTE would need altering if nrep!=1e3
 PSA <- merge(PSA,FRF[,.(iso3,repn=id,FQR=fqr)],by=c('iso3','repn')) #
 
