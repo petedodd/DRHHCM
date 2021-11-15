@@ -55,7 +55,7 @@ A <- A[risk_factor=='all']
 A <- A[year==2019]
 A <- A[sex!='a']
 A <- A[age_group %in% c('0-4','0-14','5-14')]
-A <- A[age_group %in% c('0-14')]
+## A <- A[age_group %in% c('0-14')]
 A
 
 rmn <- function(x) round(mean(x,na.rm=TRUE))
@@ -114,39 +114,44 @@ for(i in 1:nrow(D)){                    #allocate excess by regional pattern
   }
 }
 
-
-## TODO suspect can now to u5 CDR differently?
-AW <- dcast(A,iso3~sex,value.var = c('best','lo','hi'))
-nn <- names(AW)
-nn[nn=='best_f'] <- 'e_inc_num_f014'; nn[nn=='best_m'] <- 'e_inc_num_m014'
-nn[nn=='lo_f'] <- 'e_inc_num_f014_lo'; nn[nn=='lo_m'] <- 'e_inc_num_m014_lo'
-nn[nn=='hi_f'] <- 'e_inc_num_f014_hi'; nn[nn=='hi_m'] <- 'e_inc_num_m014_hi'
-names(AW) <- nn
+## -- compute CDR for each age group (all TB)
+A
+AW <- dcast(A,iso3~sex+age_group,value.var = c('best','lo','hi'))
 D <- merge(D,AW,by='iso3',all.x=TRUE,all.y=FALSE)
 
 ## --- CDR calculations
 ## estimates
-D[,.(iso3,e_inc_num_m014,e_inc_num_f014,
+D[,.(iso3,
      n_m_0_4,n_m_5_14,n_f_0_4,n_f_5_14,
-     e_inc_num_m014_hi-e_inc_num_m014_lo,
-     e_inc_num_f014_hi-e_inc_num_f014_lo)]
+     `best_f_0-14`,`best_f_0-4`,`best_f_5-14`,
+     `best_m_0-14`,`best_m_0-4`,`best_m_5-14`,
+     `lo_f_0-14`,`lo_f_0-4`,`lo_f_5-14`,
+     `lo_m_0-14`,`lo_m_0-4`,`lo_m_5-14`,
+     `hi_f_0-14`,`hi_f_0-4`,`hi_f_5-14`,
+     `hi_m_0-14`,`hi_m_0-4`,`hi_m_5-14`)]
 
-## 04 CDR (split incidence evenly)
-D[,cdr04:=(n_m_0_4+n_f_0_4)/((e_inc_num_m014 + e_inc_num_f014)/2)]
-D[,cdr04ab:=(n_m_0_4+n_f_0_4)/((e_inc_num_m014 + e_inc_num_f014)/2)]
+## 04 CDR
+D[,cdr04:=(n_m_0_4+n_f_0_4)/(`best_f_0-4` + `best_m_0-4`)]
+D[!is.finite(cdr04),.(iso3,n_m_0_4,n_f_0_4)] #check
 D[!is.finite(cdr04),cdr04:=0]
-D[cdr04>1,cdr04:=1]
-D[,cdr04ab:=((1-cdr04)/cdr04)/((e_inc_num_m014_hi-e_inc_num_m014_lo)/(3.92*e_inc_num_m014))^2-1]
+D[cdr04>1,cdr04:=1] #next, var=
+D[,V:=(cdr04/3.92)^2 * ((`hi_f_0-4`-`lo_f_0-4`)^2+(`hi_m_0-4`-`lo_m_0-4`)^2)/(`best_f_0-4` + `best_m_0-4`)^2]
+D[,cdr04ab:=(cdr04*(1-cdr04))/V-1] #a+b
 D[!is.finite(cdr04ab) | cdr04ab<0, cdr04ab:=0] #NB CDR sampling needs to handle 0s
 
 
-## 514 CDR (split incidence evenly)
-D[,cdr514:=(n_m_5_14+n_f_5_14)/((e_inc_num_m014 + e_inc_num_f014)/2)]
-D[,cdr514ab:=(n_m_5_14+n_f_5_14)/((e_inc_num_m014 + e_inc_num_f014)/2)]
+## 514 CDR
+D[,cdr514:=(n_m_5_14+n_f_5_14)/(`best_f_5-14` + `best_m_5-14`)]
+D[!is.finite(cdr514),.(iso3,n_m_5_14,n_f_5_14)] #check
 D[!is.finite(cdr514),cdr514:=0]
-D[cdr514>1,cdr514:=1]
-D[,cdr514ab:=((1-cdr514)/cdr514)/((e_inc_num_m014_hi-e_inc_num_m014_lo)/(3.92*e_inc_num_m014))^2-1]
-D[!is.finite(cdr514ab) | cdr514ab<0, cdr514ab:=0] 
+D[cdr514>1,cdr514:=1] #next, var=
+D[,V:=(cdr514/3.92)^2 * ((`hi_f_5-14`-`lo_f_5-14`)^2+(`hi_m_5-14`-`lo_m_5-14`)^2)/
+     (`best_f_5-14` + `best_m_5-14`)^2]
+D[,cdr514ab:=(cdr514*(1-cdr514))/V-1] #a+b
+D[!is.finite(cdr514ab) | cdr514ab<0, cdr514ab:=0] #NB CDR sampling needs to handle 0s
+
+## drop temp variable
+D[,V:=NULL]
 
 
 ## ## TODO this needs doing?

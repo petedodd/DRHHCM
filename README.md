@@ -6,7 +6,25 @@ tbc
 
 ## Dependencies
 
-TODO
+This analysis was run using R version 4.1.0 (2021-05-18).
+
+The following R packages must be available:
+
+- utility: here, glue
+- data manipulation: data.table, dplyr,
+- plotting: ggplot2, ggthemes, scales, ggrepel, ggpubr
+- calculations: discly, HEdtree (via devtools::install_github('petedodd/packagename'))
+
+The estimates of household size by index TB age/sex is based on previously published work:
+
+- https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30401-7/fulltext
+- https://github.com/petedodd/PINT
+
+
+## Memory requirements
+
+With a full-size PSA, a reasonable amount of RAM is needed (it was run on a machine with 36Gb).
+Commenting out the rep limitation in file 04 (ie using 100 replicates) should allow use on a machine with 8Gb RAM.
 
 ## Structure
 
@@ -32,14 +50,13 @@ NB data is excluded from the repo - it must be created for scripts to write larg
 ### 01.HHcontactNumbers.R ###
 
 TODO
-- remove some of the commented sections (eg LEA, WBIL)
 - pulmo restrict?
-- update CDR?
-- HIV proportion from est??
-- check HIV line 303/366?
-- remove HHV stuff at end?
+- update CDR? check handles 0 for ab
+
 
 ### 02.RRnumCDR.R ###
+
+This file calculatates the RR case detection ratios as RRest.csv for later use, but is otherwise self-contained.
 
 ### 03.DResistance.R ###
 
