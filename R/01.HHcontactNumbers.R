@@ -115,16 +115,6 @@ for(i in 1:nrow(D)){                    #allocate excess by regional pattern
 }
 
 
-## HIV/ART TODO change to using HIV in estimates?
-D[,.(iso3,newrel_hivtest,newrel_hivpos,newrel_art)]
-D[,.(iso3,newrel_hivpos/newrel_hivtest,newrel_art/newrel_hivpos)]
-D[,hivprop:=newrel_hivpos/newrel_hivtest]
-D[,artprop:=newrel_art/newrel_hivpos]
-D[!is.finite(hivprop),artprop:=0]
-D[!is.finite(artprop),artprop:=0]
-D[!is.finite(hivprop),hivprop:=0]
-
-
 ## TODO suspect can now to u5 CDR differently?
 AW <- dcast(A,iso3~sex,value.var = c('best','lo','hi'))
 nn <- names(AW)
