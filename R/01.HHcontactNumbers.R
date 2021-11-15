@@ -55,7 +55,6 @@ A <- A[risk_factor=='all']
 A <- A[year==2019]
 A <- A[sex!='a']
 A <- A[age_group %in% c('0-4','0-14','5-14')]
-## A <- A[age_group %in% c('0-14')]
 A
 
 rmn <- function(x) round(mean(x,na.rm=TRUE))
@@ -154,25 +153,79 @@ D[!is.finite(cdr514ab) | cdr514ab<0, cdr514ab:=0] #NB CDR sampling needs to hand
 D[,V:=NULL]
 
 
-## ## TODO this needs doing?
-## ## --- multiply by proportion pumonary
-## nmz <- grep('^n_',names(D),value=TRUE)  #notification columns
-## NPR <- dcast(NPR[tbtype=="Pulm"],iso3 ~ age + sex, value.var = 'proportion')
-## ## harmonize names
-## nmzp <- names(NPR)[-1]
-## nmzp <- gsub("-","_",nmzp)
-## nmzp[grepl("M",nmzp)] <- paste0("pn_m_",nmzp[grepl("M",nmzp)])
-## nmzp[grepl("F",nmzp)] <- paste0("pn_f_",nmzp[grepl("F",nmzp)])
-## nmzp <- gsub("_M","",nmzp); nmzp <- gsub("_F","",nmzp)
-## nmzp <- gsub("65_","65_Inf",nmzp)
-## names(NPR)[2:ncol(NPR)] <- nmzp
-## D <- merge(D,NPR,by='iso3',all.x = TRUE,all.y=FALSE) #join in
-## D[,c(nmz):=lapply(.SD,as.numeric),.SDcols=nmz]       #make numeric from int
-## nmz <- nmz[!grepl('0_4',nmz)]; nmz <- nmz[!grepl('5_14',nmz)] #drop children
-## for(nm in nmz) # multiply by corresponding pulmonary factor
-##   D[,c(nm):=D[,nm,with=FALSE] * D[,paste0('p',nm),with=FALSE]]
-## D[,c(nmzp):=NULL]                       #ditch the pulmonary props
-## 
+## ---  working out the proportion pulmonary
+## see PINT repo including graphs 05
+
+## relevant variables
+nmz <- grep("new_.{2}_.+",names(N),value=TRUE)  #keep right patterns
+nmz <- nmz[!grepl("unk",nmz)] #drop unknown
+nmz <- nmz[!grepl("fu|mu",nmz)]       #more unknowns dropped
+nmz <- nmz[!grepl('plus|514|04|014',nmz)] #drop children & not-child catchall
+nmz <- c('iso3','year',nmz)
+
+## reduce to relevant data
+NP <- N[,nmz,with=FALSE]
+tmp <- NP[,.(total=rowSums(.SD)),.SDcols=3:ncol(NP),by=.(iso3,year)]
+NP <- merge(NP,tmp,by=c('iso3','year'))
+NP <- NP[!is.na(total)]
+NP <- NP[total>200]                     #remove small-TB countries
+
+## reshape
+NP[,total:=NULL]
+NP <- melt(NP,id.vars = c('iso3','year'))
+
+## re-parse variable as separate characteristics
+NP[,tbtype:=ifelse(grepl("ep",variable),'EP','Pulm')]
+NP[,sex:=ifelse(grepl("f",variable),'F','M')]
+NP[,age:=gsub("[a-z]|_","",variable)]
+NP[,age:=gsub("(\\d{2})(\\d*)","\\1-\\2",age,perl=TRUE)]
+
+## aggregate over years
+NPR <- NP[,.(value=sum(value)),by=.(iso3,tbtype,sex,age)]
+NPR[,total:=sum(value),by=.(iso3,age,sex)]
+NPR[,proportion:=value/total,by=.(iso3,tbtype,sex,age)]
+NPR[,bad:=any(!is.finite(proportion)),by=iso3]
+NPR <- NPR[bad==FALSE]                  #drop those with things amiss
+
+## regional averages
+NPR <- merge(NPR,unique(N[,.(iso3,g_whoregion)]),
+             by='iso3',all.x=TRUE,all.y=FALSE)
+NPRreg <- NPR[,.(proportion=mean(proportion)),
+              by=.(g_whoregion,tbtype,sex,age)]
+
+## use these regional averages to fill out to all countries
+NPR2 <- merge(unique(N[,.(iso3,g_whoregion)]),
+              NPRreg,by='g_whoregion',
+              allow.cartesian = TRUE)#reg averges for all iso3
+NPR2 <- NPR2[!(iso3 %in% NPR[,unique(iso3)])]  #restrict to those w/o data
+NPR <- rbind(NPR[,.(iso3,sex,age,tbtype,proportion)],
+             NPR2[,.(iso3,sex,age,tbtype,proportion)]) #add in w/o data iso3s as means
+setkey(NPR,iso3)
+
+save(NPR,file=here('data/NPR.Rdata'))
+## ---  end of pulmonary analysis
+
+## reshape
+NPRW <- dcast(NPR[tbtype=="Pulm"],
+             iso3 ~ age + sex, value.var = 'proportion')
+
+## harmonize names
+nmzp <- names(NPRW)[-1]
+nmzp <- gsub("-","_",nmzp)
+nmzp[grepl("M",nmzp)] <- paste0("pn_m_",nmzp[grepl("M",nmzp)])
+nmzp[grepl("F",nmzp)] <- paste0("pn_f_",nmzp[grepl("F",nmzp)])
+nmzp <- gsub("_M","",nmzp); nmzp <- gsub("_F","",nmzp)
+nmzp <- gsub("65_","65_Inf",nmzp)
+names(NPRW)[2:ncol(NPRW)] <- nmzp
+nmz <- gsub("p","",nmzp)
+
+## merge & multiply
+D <- merge(D,NPRW,by='iso3',all.x = TRUE,all.y=FALSE) #join in
+D[,c(nmz):=lapply(.SD,as.numeric),.SDcols=nmz] #make numeric from int
+for(nm in nmz) # multiply by corresponding pulmonary factor
+  D[,c(nm):=D[,nm,with=FALSE] * D[,paste0('p',nm),with=FALSE]]
+D[,c(nmzp):=NULL]                       #ditch the pulmonary props
+
 
 ## --- restrict
 D <- D[,.(iso3,country,g_whoregion,
@@ -328,9 +381,6 @@ chhc[iso3=='ZAF',summary(u5hhc)]/DLK[iso3=='ZAF',sum(value)] #check
 chhc <- chhc[,.(u5hhc=mean(phh),u5hhc.sd=sd(phh),
                 u5hhc.l=mean(log(phh)),u5hhc.sdl=sd(log(phh))),by=iso3]
 
-
-save(chhc,file=here('data/chhc.Rdata'))
-
 ## merge to make parent data table for PSA
 DLC <- merge(DLC,chhc,by='iso3')
 save(DLC,file=here('data/DLC.Rdata'))
@@ -374,8 +424,6 @@ ohhc[iso3=='ZAF',summary(o5hhc)]/DLK[iso3=='ZAF',sum(value)] #check
 
 ohhc <- ohhc[,.(o5hhc=mean(phh),o5hhc.sd=sd(phh),
                 o5hhc.l=mean(log(phh)),o5hhc.sdl=sd(log(phh))),by=iso3]
-
-save(ohhc,file=here('data/ohhc.Rdata'))
 
 
 DLO <- merge(DLO,ohhc,by='iso3')

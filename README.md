@@ -49,10 +49,7 @@ NB data is excluded from the repo - it must be created for scripts to write larg
 
 ### 01.HHcontactNumbers.R ###
 
-TODO
-- pulmo restrict?
-- update CDR? check handles 0 for ab
-
+check CDR in 03; add description of 01 here
 
 ### 02.RRnumCDR.R ###
 
