@@ -175,7 +175,7 @@ D <- D[,.(iso3,country,g_whoregion,
           n_m_55_64,n_m_65_Inf,
           n_f_0_4,n_f_5_14,n_f_15_24,n_f_25_34,n_f_35_44,n_f_45_54,
           n_f_55_64,n_f_65_Inf,
-          hivprop,artprop,cdr04,cdr04ab,cdr514,cdr514ab)]
+          cdr04,cdr04ab,cdr514,cdr514ab)]
 D
 
 save(D,file=here('data/D.Rdata'))
@@ -189,7 +189,7 @@ load(here('indata/O5.Rdata'))  #load HH size predictions - prev work
 
 ## reshape
 DL <- melt(D,id.vars = c("iso3","country","g_whoregion",#
-                         "hivprop","artprop","cdr04","cdr04ab",
+                         "cdr04","cdr04ab",
                          "cdr514","cdr514ab"))
 
 ## remap for consistency
@@ -282,7 +282,7 @@ DLC <- unique(DL[,.(iso3,g_whoregion,
 DLC
 
 ## NB this is value hh stuff ( acat adult, but we can aggregate these)
-DLK <- DL[,.(iso3,acat,sex,value,HHu5mu,HHu5logsd)] #TODO will probably need to invlude HIV stuff here
+DLK <- DL[,.(iso3,acat,sex,value,HHu5mu,HHu5logsd)]
 
 ## extend for calculating numbers mean numbers of HH contacts
 nrep <- 1e3
@@ -339,7 +339,7 @@ DLO <- unique(DL[,.(iso3,g_whoregion,
 DLO
 
 ## NB this is value hh stuff ( acat adult, but we can aggregate these)
-DLK <- DL[,.(iso3,acat,sex,value,HHo5mu,HHo5logsd)]      #will probably need to invlude HIV stuff here
+DLK <- DL[,.(iso3,acat,sex,value,HHo5mu,HHo5logsd)]
 
 ## extend for calculating numbers mean numbers of HH contacts
 nrep <- 1e3
