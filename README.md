@@ -99,4 +99,6 @@ TODO
 
 ## Other processing TODOs ##
 
-- pretty googlesheets drawing on the sheets where data is written, for paper inclusion
+- table 2 results too much?
+- see yellow in tables and check
+- hhc unc?
