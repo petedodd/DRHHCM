@@ -94,7 +94,6 @@ utils/
 which will be a bit slow first time around
 
 TODO
-- life-years bug
 - see the few flagged checks in script
 
 

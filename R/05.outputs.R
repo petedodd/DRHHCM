@@ -229,7 +229,7 @@ IVc0 <- IVc0[,.(deaths0=mean(deaths),cost0=mean(cost),lys0=mean(lys)),
 ## === figure_NN
 
 ## TODO check regimen
-## TODO fine format
+## TODO fine tune format
 
 GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
   geom_bar(stat='identity',position='dodge') +
@@ -559,8 +559,6 @@ fwrite(resources,file=here('output/table_resources.csv'))
 
 ## === health economics table
 
-
-
 WRa <- IV[,.(deaths0=sum(deaths0),cost0=sum(cost0),lys0=sum(lys0)),
          by = .(repn,intervention,`PT regimen`,g_whoregion)]
 WRc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
@@ -577,7 +575,7 @@ WR0 <- unique(WRa[,.(repn,deaths0,cost0,lys0,g_whoregion)])
 
 WR <- rbind(WRc,WRb)
 WR <- merge(WR,WR0,by=c('repn','g_whoregion'),all.x=TRUE)
-WR[,c('Dcost','Dlys'):=.(cost-cost0,lys-lys0)]
+WR[,c('Dcost','Dlys'):=.(cost-cost0,lys0-lys)]
 WR[,Ddeaths:=deaths-deaths0]
 
 WR[,table(`PT regimen`,intervention)]
@@ -597,13 +595,13 @@ W0 <- unique(Wa[,.(repn,deaths0,cost0,lys0)])
 
 W <- rbind(Wc,Wb)
 W <- merge(W,W0,by='repn',all.x=TRUE)
-W[,c('Dcost','Dlys'):=.(cost-cost0,lys-lys0)]
+W[,c('Dcost','Dlys'):=.(cost-cost0,lys0-lys)]
 W[,Ddeaths:=deaths-deaths0]
 
 
 WM <- W[,.(Dcost=mean(Dcost),Dlys=mean(Dlys)),
         by=.(`PT regimen`,intervention)]
-WM[,ICER:=-Dcost/Dlys]
+WM[,ICER:=Dcost/Dlys]
 
 
 
@@ -614,7 +612,7 @@ Wo <- makehilo(W,qtys)
 
 ## add ICERS
 Wo <- merge(Wo,
-           W[,.(ICER=paste0(round(-mean(Dcost)/mean(Dlys)))),
+           W[,.(ICER=paste0(round(mean(Dcost)/mean(Dlys)))),
              by=.(`PT regimen`,intervention)],
            by=c('PT regimen','intervention')
            )
@@ -646,7 +644,7 @@ Wo[,none:=tmp]
 nmz <- names(Wo)
 setcolorder(Wo,c('variable','none',nmz[2:14]))
 
-Wo #TODO life-years bug: think base case not discounted (> in basecase)
+Wo
 
 
 fwrite(Wo,file=here('output/table_HE.csv'))
