@@ -70,7 +70,6 @@ This file performs the calculations.
 
 TODO
 - remove 100 rep limitation (late adjustment, not on laptop)
-- various checks and comments to remove
 
 It loads:
 
@@ -82,7 +81,8 @@ utils/
 #### ModelFuns.R ####
 
 TODO
-- various
+- check HIV-specific IRR for PT used
+- WBL for LTBI?
 
 ### 05.outputs.R ###
 

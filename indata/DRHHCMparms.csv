@@ -1,31 +1,30 @@
-NAME,DISTRIBUTION,DESCRIPTION,SOURCE,NOTE
-ontxY,"LN( -3.963316,0.6457913)",CFR children <5 on TB treatment,Jenkins et al 2017,
-ontxO,"LN(-4.828314,0.4817445)",CFR children 5-14 on TB treatment,Jenkins et al 2017,
-hivartOR:mn,"MVN: [2.6375681, -0.5683867]","ORs of death on TB treatment, (OR HIV+ vs -) x (ART -/+): mean","Jenkins et al 2017, Dodd et al 2017",
-hivartOR:sg,"MVN: [[0.2325509,-0.2325509],[-0.2325509,0.6367345]]","ORs of death on TB treatment, (OR HIV+ vs -) x (ART -/+): variance","Jenkins et al 2017, Dodd et al 2017",
-notxY,"LN(-0.830113,0.08035318)",CFR children <5 without TB treatment,Jenkins et al 2017,
-notxO,"LN(-1.903809,0.1285165)",CFR children 5-14 without TB treatment,Jenkins et al 2017,
-notxHY,"B(77.13050,11.10817)",CFR children <5 without TB treatment (HIV+/ART-),Dodd et al 2017,
-notxHO,"B(19.59083,6.89700)",CFR children 5-14 without TB treatment (HIV+/ART-),Dodd et al 2017,
-notxHAY,"B(15.18683,12.87500)",CFR children <5 without TB treatment (HIV+/ART+),Dodd et al 2017,
-notxHAO,"B(10.43383,11.08417)",CFR children 5-14 without TB treatment (HIV+/ART+),Dodd et al 2017,
-hivp,"LN(4.364,1.14)",IRR for TB incidence given HIV+/ART- (vs UNAIDS estimates),Dodd et al 2017,
-hivpi,"LN(2.066863,0.2800718)",IRR for TB incidence given HIV+/ART- (for individuals),Dodd et al 2017,
-artp,"LN(-1.203973,0.150482)",HR for TB incidence given HIV+/ART+ vs HIV+/ART-,Dodd et al 2016,
-HHhivprev04,"B(55,526)",Prevalence of HIV in child HH contacts of HIV+ index case,Martinez et al 2018,
-HHhivprev514,"B(54,854)",Prevalence of HIV in child HH contacts of HIV+ index case,Martinez et al 2018,
-LTBI04,"B(106.7330582,193.9234438)",LTBI prevalence,Fox et al 2013,
-LTBI514,"B(41.83776346,36.95275153)",LTBI prevalence,Fox et al 2013,
-LTBI04hi,"B(10.62231,54.54526)",LTBI prevalence,Fox et al 2013,
-LTBI514hi,"B(17.0386,75.56247)",LTBI prevalence,Fox et al 2013,
-iptRR,"LN(-0.4307829,0.1616345)","RR for incident TB given IPT, age <15",Ayieko et al 2014,
-iptRRtstpos,"LN(-1.049822,0.4004678)","RR for incident TB given IPT in TST+, age <15",Ayieko et al 2014,
-iptRRhivpos,"LN(-1.171183,0.5127492)","RR for incident TB given IPT in HIV+, age <15",Zunza et al 2017,
-CFRrtx.RS,"LN( -3.963316,0.6457913)",CFR inappropriate RR-ATT when RS,assume as appropriate DStx,
-CFRrtx.RR,"LN( -3.963316,0.6457913)",CFR RR-ATT when truly RR,Harausz,
-coprevDRkids,"LN(2.054124,0.1417502)",coprevalence in percent of HH contacts of DRTB,Shah,
-concord,"B(57.40241,12.09203)",concordance in DR type,Chiang,
-prog04,"B(5.152793,21.96717)",LTBI+ progression u5,Martinez et al 2018,
-prog514,"B(4.151282,43.02238)",LTBI+ progression u5,Martinez et al 2018,
-fracAE,"B(12.656,1569.344)",Fracton of those on PT with AEs	Chang 2014,
-fracSymptomatic,"B(2.936,11.744)",Fraction of contacts presumptive TB	Martinez 2017 & Sayedi 2020,
+NAME,DISTRIBUTION,DESCRIPTION,SOURCE,NOTE,used?
+ontxY,"LN( -3.963316,0.6457913)",CFR children <5 on TB treatment,Jenkins et al 2017,,Y
+ontxO,"LN(-4.828314,0.4817445)",CFR children 5-14 on TB treatment,Jenkins et al 2017,,Y
+hivartOR:mn,"MVN: [2.6375681, -0.5683867]","ORs of death on TB treatment, (OR HIV+ vs -) x (ART -/+): mean","Jenkins et al 2017, Dodd et al 2017",,Y
+hivartOR:sg,"MVN: [[0.2325509,-0.2325509],[-0.2325509,0.6367345]]","ORs of death on TB treatment, (OR HIV+ vs -) x (ART -/+): variance","Jenkins et al 2017, Dodd et al 2017",,Y
+notxY,"LN(-0.830113,0.08035318)",CFR children <5 without TB treatment,Jenkins et al 2017,,Y
+notxO,"LN(-1.903809,0.1285165)",CFR children 5-14 without TB treatment,Jenkins et al 2017,,Y
+notxHY,"B(77.13050,11.10817)",CFR children <5 without TB treatment (HIV+/ART-),Dodd et al 2017,,Y
+notxHO,"B(19.59083,6.89700)",CFR children 5-14 without TB treatment (HIV+/ART-),Dodd et al 2017,,Y
+notxHAY,"B(15.18683,12.87500)",CFR children <5 without TB treatment (HIV+/ART+),Dodd et al 2017,,Y
+notxHAO,"B(10.43383,11.08417)",CFR children 5-14 without TB treatment (HIV+/ART+),Dodd et al 2017,,Y
+hivp,"LN(4.364,1.14)",IRR for TB incidence given HIV+/ART- (vs UNAIDS estimates),Dodd et al 2017,,Y
+hivpi,"LN(2.066863,0.2800718)",IRR for TB incidence given HIV+/ART- (for individuals),Dodd et al 2017,,Y
+artp,"LN(-1.203973,0.150482)",HR for TB incidence given HIV+/ART+ vs HIV+/ART-,Dodd et al 2016,,Y
+HHhivprev04,"B(55,526)",Prevalence of HIV in child HH contacts of HIV+ index case,Martinez et al 2018,,Y
+HHhivprev514,"B(54,854)",Prevalence of HIV in child HH contacts of HIV+ index case,Martinez et al 2018,,Y
+LTBI04,"B(106.7330582,193.9234438)",LTBI prevalence,Fox et al 2013,,Y
+LTBI514,"B(41.83776346,36.95275153)",LTBI prevalence,Fox et al 2013,,Y
+LTBI04hi,"B(10.62231,54.54526)",LTBI prevalence,Fox et al 2013,,Y
+LTBI514hi,"B(17.0386,75.56247)",LTBI prevalence,Fox et al 2013,,Y
+iptRR,"LN(-0.4307829,0.1616345)","RR for incident TB given IPT, age <15",Ayieko et al 2014,,Y
+iptRRtstpos,"LN(-1.049822,0.4004678)","RR for incident TB given IPT in TST+, age <15",Ayieko et al 2014,,Y
+iptRRhivpos,"LN(-1.171183,0.5127492)","RR for incident TB given IPT in HIV+, age <15",Zunza et al 2017,,Y
+CFRrtx.RR,"B(11.09004,127.5355)",CFR RR-ATT when truly RR,Harausz,,Y
+coprevDRkids,"LN(2.054124,0.1417502)",coprevalence in percent of HH contacts of DRTB,Shah,,Y
+concord,"B(57.40241,12.09203)",concordance in DR type,Chiang,,Y
+prog04,"B(5.152793,21.96717)",LTBI+ progression u5,Martinez et al 2018,,Y
+prog514,"B(4.151282,43.02238)",LTBI+ progression u5,Martinez et al 2018,,Y
+fracAE,"B(12.656,1569.344)",Fracton of those on PT with AEs,Chang 2014,,Y
+fracSymptomatic,"B(2.936,11.744)",Fraction of contacts presumptive TB,Martinez 2017 & Sayedi 2020,,Y
