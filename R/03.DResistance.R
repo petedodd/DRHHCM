@@ -10,7 +10,7 @@ PZ <- parse.parmtable(PZ)               #for concordance
 
 load(here('indata/FRF.Rdata')) #TODO need to include script & move to data/
 
-## data on paed RR CDRs TODO update
+## data on paed RR CDRs
 RRest <- fread(here('data/RRest.csv'))
 RRest[,c('rrcdr.a','rrcdr.b'):=.(cdr014*cdr014ab,(1-cdr014)*cdr014ab)]
 RRest[,c('cdr014','cdr014ab'):=NULL]
@@ -75,7 +75,7 @@ names(PSO)[who] <- nmz
 PSA <- rbind(PSA,PSO,fill=TRUE)
 rm(PSO)
 
-## NOTE have CDR stuff in twice
+## convert to beta a/b parms for both age cats
 PSA[,c('cdr.a','cdr.b'):=.(cm*cab,(1-cm)*cab)]
 PSA[,c('cdr04','cdr04ab','cdr514','cdr514ab'):=NULL]
 PSA[,c('cm','cab'):=NULL]

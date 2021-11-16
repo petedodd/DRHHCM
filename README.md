@@ -3,6 +3,23 @@ tbc
 
 # Notes on analysis
 
+The analysis takes the form of a probabilistic sensitivity analysis (PSA) and is split into a number of analyses which are designed to be run in a particular order, usually indicated by the two digits at the start of their filename.
+
+## Structure
+
+The directory structure is
+
+```
+.
+├── data
+├── indata
+├── output
+└── R
+    └── utils
+```
+
+NB data is excluded from the repo - it must be created by hand in the right relative location for scripts to write large temporary data to.
+
 
 ## Dependencies
 
@@ -24,22 +41,9 @@ The estimates of household size by index TB age/sex is based on previously publi
 ## Memory requirements
 
 With a full-size PSA, a reasonable amount of RAM is needed (it was run on a machine with 36Gb).
+
 Commenting out the rep limitation in file 04 (ie using 100 replicates) should allow use on a machine with 8Gb RAM.
 
-## Structure
-
-Directory structure:
-
-```
-.
-├── data
-├── indata
-├── output
-└── R
-    └── utils
-```
-
-NB data is excluded from the repo - it must be created for scripts to write large temporary data to.
 
 ## TODO other changes
 - need to include the resampling for FQR 
@@ -49,7 +53,7 @@ NB data is excluded from the repo - it must be created for scripts to write larg
 
 ### 01.HHcontactNumbers.R ###
 
-check CDR in 03; add description of 01 here
+This file uses notification data and previous estimates of household contacts to construct numbers at risk as the starting point for the PSA object.
 
 ### 02.RRnumCDR.R ###
 
