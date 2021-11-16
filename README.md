@@ -18,7 +18,7 @@ The directory structure is
     └── utils
 ```
 
-NB data is excluded from the repo - it must be created by hand in the right relative location for scripts to write large temporary data to.
+NB the folder data/ is excluded from the repo - it must be created by hand in the right relative location for scripts to write large temporary data to. All necessary input data to run the analysis is in indata/.
 
 
 ## Dependencies
@@ -42,7 +42,7 @@ The estimates of household size by index TB age/sex is based on previously publi
 
 With a full-size PSA, a reasonable amount of RAM is needed (it was run on a machine with 36Gb).
 
-Commenting out the rep limitation in file 04 (ie using 100 replicates) should allow use on a machine with 8Gb RAM.
+Commenting out the rep limitation in file 04 around line 14 (ie using 100 replicates) should allow use on a machine with (eg) 8Gb RAM.
 
 
 ## TODO other changes
@@ -70,7 +70,6 @@ This file performs the calculations.
 
 TODO
 - remove 100 rep limitation (late adjustment, not on laptop)
-- add fracSymptomatic & fracAE to parms
 - various checks and comments to remove
 
 It loads:

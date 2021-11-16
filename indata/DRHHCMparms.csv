@@ -27,3 +27,5 @@ coprevDRkids,"LN(2.054124,0.1417502)",coprevalence in percent of HH contacts of 
 concord,"B(57.40241,12.09203)",concordance in DR type,Chiang,
 prog04,"B(5.152793,21.96717)",LTBI+ progression u5,Martinez et al 2018,
 prog514,"B(4.151282,43.02238)",LTBI+ progression u5,Martinez et al 2018,
+fracAE,"B(12.656,1569.344)",Fracton of those on PT with AEs	Chang 2014,
+fracSymptomatic,"B(2.936,11.744)",Fraction of contacts presumptive TB	Martinez 2017 & Sayedi 2020,

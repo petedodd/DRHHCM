@@ -200,51 +200,54 @@ MakeCostData <- function(csts,          #base data table of cost data
 
 ## add variables
 addVariables <- function(D){
-    ## CDR stuff
-    D[,CDR:=rbeta(nrow(D),cdr.a,cdr.b)]  #coprev CDR
-    D[,CDRi:=rbeta(nrow(D),cdr.a,cdr.b)] #incidence CDR
-    ## see Appendix: scaled up for incidence
-    D[,CDRi:=pmin((1+runif(nrow(D)))*CDRi,1)] #scaled mean
-    D[,rrCDR:=rbeta(nrow(D),rrcdr.a,rrcdr.b)]
-    D[,rrCDRi:=rbeta(nrow(D),rrcdr.a,rrcdr.b)] #
-    D[rrCDR>CDR,rrCDR:=CDR]; D[rrCDRi>CDRi,rrCDRi:=CDRi];                      #safety
-    ## prob. RS ATT if ATT, coprev/omc
-    ## (1-p)CDR = RRCDR; p=1-RRCDR/CDR
-    D[DST=='RS',pRSATT:=1.0]; D[DST=='RS',pRSATTi:=1.0];          # no FP
-    D[DST!='RS',pRSATT:=1-rrCDR/CDR]; D[DST!='RS',pRSATTi:=1-rrCDRi/CDRi];
-    print('CDRs added!')
-    ## CFR on RS-ATT
-    D[,CFRnotx:=CFRtxN(age,hiv,art)]                #CFR not on ATT NOTE HIV
-    ## TODO make CFRnotx
-    ## D[DST=='RS',CFRstx:=PZ$CFRstx.RS$r(sum(DST=='RS'))] #CFR as before,
-    D[DST=='RS',CFRstx:=CFRtxY(age,hiv,art)]
-    D[DST!='RS',CFRstx:=CFRnotx] #assume like no tx
-    ## CFR on RR-ATT
-    D[DST=='RS',CFRrtx:=PZ$CFRrtx.RS$r(sum(DST=='RS'))] #TODO improve nm
-    D[DST!='RS',CFRrtx:=PZ$CFRrtx.RR$r(sum(DST!='RS'))] #Harausz
-    ## TODO HIV effect?
-    print('CFRs added!')
-    ## RR of incident TB under PT
-    D[,RR0:=IPTrr(sum(nrow(D)))]        #base efficacy of IPT TODO check back HIV dependence
-    D[,RR1:=IPTrr(sum(nrow(D)),tst="+ve")]   #base efficacy of PT among TST+ve
-    D[,RR:=RR0]                         #default
-    ## D[DST=='RS',RR:=IPTrr(sum(DST=='RS'))]
-    ## D[DST=='FS',RR:=1.0]
-    ## D[DST=='FR',RR:=1.0] #TODO different parm
-    ## other variables from prevous work TODO check
-    print('PT variables added!')
-    D[,coprev:=coprev(age)]                #coprevalent TB
-    D[,ltbi.prev:=ltbi.prev(age,coprev)]   #LTBI prevalence
-    ## HIV
-    print('Prevalences added!')
-    D[,pprogn:=progprob(age,hiv,art)] #prgn in LTBI+
-    D[,progn:=ltbi.prev * pprogn]           #TB incidence, total
-    ##  TODO not needed here?
-    D[,progn.LP.PTn:=pprogn*1] #TB incidence in LTBI +ve PT-ve
-    D[,progn.LN.PTn:=pprogn*0]     #TB incidence in LTBI -ve PT-ve
-    print('Progression added!')
-    ## PT coverage
-    D[,PTcov:=0]
+  ## CDR stuff
+  D[,CDR:=rbeta(nrow(D),cdr.a,cdr.b)]  #coprev CDR
+  D[,CDRi:=rbeta(nrow(D),cdr.a,cdr.b)] #incidence CDR
+  ## see Appendix: scaled up for incidence
+  D[,CDRi:=pmin((1+runif(nrow(D)))*CDRi,1)] #scaled mean
+  D[,rrCDR:=rbeta(nrow(D),rrcdr.a,rrcdr.b)]
+  D[,rrCDRi:=rbeta(nrow(D),rrcdr.a,rrcdr.b)] #
+  D[rrCDR>CDR,rrCDR:=CDR]; D[rrCDRi>CDRi,rrCDRi:=CDRi];                      #safety
+  ## prob. RS ATT if ATT, coprev/omc
+  ## (1-p)CDR = RRCDR; p=1-RRCDR/CDR
+  D[DST=='RS',pRSATT:=1.0]; D[DST=='RS',pRSATTi:=1.0];          # no FP
+  D[DST!='RS',pRSATT:=1-rrCDR/CDR]; D[DST!='RS',pRSATTi:=1-rrCDRi/CDRi];
+  print('CDRs added!')
+  ## CFR on RS-ATT
+  D[,CFRnotx:=CFRtxN(age,hiv,art)]                #CFR not on ATT NOTE HIV
+  ## TODO make CFRnotx
+  ## D[DST=='RS',CFRstx:=PZ$CFRstx.RS$r(sum(DST=='RS'))] #CFR as before,
+  D[DST=='RS',CFRstx:=CFRtxY(age,hiv,art)]
+  D[DST!='RS',CFRstx:=CFRnotx] #assume like no tx
+  ## CFR on RR-ATT
+  D[DST=='RS',CFRrtx:=PZ$CFRrtx.RS$r(sum(DST=='RS'))] #TODO improve nm
+  D[DST!='RS',CFRrtx:=PZ$CFRrtx.RR$r(sum(DST!='RS'))] #Harausz
+  ## TODO HIV effect?
+  print('CFRs added!')
+  ## RR of incident TB under PT
+  D[,RR0:=IPTrr(sum(nrow(D)))]        #base efficacy of IPT TODO check back HIV dependence
+  D[,RR1:=IPTrr(sum(nrow(D)),tst="+ve")]   #base efficacy of PT among TST+ve
+  D[,RR:=RR0]                         #default
+  ## D[DST=='RS',RR:=IPTrr(sum(DST=='RS'))]
+  ## D[DST=='FS',RR:=1.0]
+  ## D[DST=='FR',RR:=1.0] #TODO different parm
+  ## other variables from prevous work TODO check
+  print('PT variables added!')
+  D[,coprev:=coprev(age)]                #coprevalent TB
+  D[,ltbi.prev:=ltbi.prev(age,coprev)]   #LTBI prevalence
+  ## HIV
+  print('Prevalences added!')
+  D[,pprogn:=progprob(age,hiv,art)] #prgn in LTBI+
+  D[,progn:=ltbi.prev * pprogn]           #TB incidence, total
+  ##  TODO not needed here?
+  D[,progn.LP.PTn:=pprogn*1] #TB incidence in LTBI +ve PT-ve
+  D[,progn.LN.PTn:=pprogn*0]     #TB incidence in LTBI -ve PT-ve
+  print('Progression added!')
+  ## PT coverage
+  D[,PTcov:=0]
+  ## for costing: AEs & symptoms
+  D[,fracSymptomatic:=PZ$fracSymptomatic$r(nrow(D))]
+  D[,fracAE:=PZ$fracAE$r(nrow(D))]
 }
 
 

@@ -72,9 +72,6 @@ setPTeff <- function(D, #data
     }
 }
 
-## cost things -
-PSA[,fracSymptomatic:=0.3] #TODO build into parms
-PSA[,fracAE:=0.0] #TODO AE for PT build into parms
 
 
 ## set costs (by side-effect)
