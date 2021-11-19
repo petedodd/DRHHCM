@@ -473,21 +473,15 @@ rsIVS0[,intervention:='No HHCM']
 rsIVS <- rbind(rsIVS,rsIVS0)
 
 ## outcomes in total
-vrs <- c('deaths','lys','incdeaths','prevdeaths','inctb')
-tmp1 <- makehilo(IVS,cls=vrs); tmp1[,drtype:="all"]
-tmp2 <- makehilo(rsIVS,cls=vrs); tmp2[,drtype:="RS"]
-tmp3 <- makehilo(rrIVS,cls=vrs); tmp3[,drtype:="RR"]
-out1 <- rbindlist(list(tmp1,tmp2,tmp3))
+vrs <- c('incdeaths','prevdeaths','inctb')
+out1 <- makehilo(IVS,cls=vrs)
 drop <- c(paste(vrs,"lo",sep="."),paste(vrs,"hi",sep="."))
 out1[,c(drop):=NULL]
 out1[,rtype:="total"]
 
 ## incremental outcomes
 dvrs <- paste0('D',vrs)
-tmp1 <- makehilo(DIVS,cls=dvrs); tmp1[,drtype:="all"]
-tmp2 <- makehilo(rsDIVS,cls=dvrs); tmp2[,drtype:="RS"]
-tmp3 <- makehilo(rrDIVS,cls=dvrs); tmp3[,drtype:="RR"]
-out2 <- rbindlist(list(tmp1,tmp2,tmp3))
+out2 <- makehilo(DIVS,cls=dvrs)
 drop <- c(paste(dvrs,"lo",sep="."),paste(dvrs,"hi",sep="."))
 out2[,c(drop):=NULL]
 out2[,rtype:="incremental"]
@@ -495,12 +489,10 @@ setnames(out2,old=dvrs,new=vrs)
 
 ## combine & relevel
 out <- rbind(out1,out2)
-out <- melt(out,id=c("rtype","drtype","intervention","PT regimen"))
-out$drtype <- factor(out$drtype,levels=c("RS",'RR','all'))
+out <- melt(out,id=c("rtype","intervention","PT regimen"))
 out$rtype <- factor(out$rtype,levels=c('total','incremental'))
 out$variable <- factor(out$variable,
-                       levels=c('inctb','incdeaths','prevdeaths',
-                                'deaths','lys'))
+                       levels=c('inctb','incdeaths','prevdeaths'))
 out$intervention <- factor(out$intervention,
                            levels=c("No HHCM","HHCM, no PT",
                                     "PT to <5/HIV+/TST+","PT to <5/HIV+",
@@ -509,10 +501,11 @@ out$`PT regimen` <- factor(out$`PT regimen`,
                            levels=c("none","FQ","BDQ"))
 
 ## reshape
-outcomes <- dcast(out,rtype + drtype + variable ~
+outcomes <- dcast(out,rtype  + variable ~
                         intervention + `PT regimen`)
 
 fwrite(outcomes,file=here('output/table_outcomes.csv'))
+## TODO also split inc by RR-type (see notes in doc)
 
 ## === resources table
 rzn <- c('hhc','ptc','rsatt','rratt')
@@ -675,3 +668,149 @@ if(FALSE){
   upload.to.sheets("table_HE.csv",shid)
 
 }
+
+
+## temporary below here to be reworked into Appendix results:
+## RR split to outcomes
+## all country plot
+## RS analog
+
+
+
+
+## === outcomes table
+
+IVS <- IV[,.(
+  ## absolute
+  deaths=sum(deaths),
+  lys=sum(lys1),
+  incdeaths=sum(incdeaths),
+  prevdeaths=sum(prevdeaths),
+  inctb=sum(inctb),
+  rsatt=sum(rsatt),rratt=sum(rratt),
+  ptc=sum(ptc),hhc=sum(hhc),cost=sum(cost)
+  ),
+  by = .(repn,intervention,`PT regimen`)]
+
+
+DIVS <- IV[,.(
+  ## increments
+  Ddeaths=sum(deaths-deaths0),
+  Dlys=sum(lys1-lys0),
+  Dincdeaths=sum(incdeaths-incdeaths0),
+  Dprevdeaths=sum(prevdeaths-prevdeaths0),
+  Dinctb=sum(inctb-inctb0),
+  Drsatt=sum(rsatt-rsatt0),Drratt=sum(rratt-rratt0),
+  Dptc=sum(ptc-ptc0),Dhhc=sum(hhc),Dcost=sum(cost-cost0)
+),by = .(repn,intervention,`PT regimen`)]
+
+IVS0 <- IV[`PT regimen`=='FQ', #NOTE otherwise duplicated
+           .(deaths=sum(deaths0),
+             lys=sum(lys0),
+             incdeaths=sum(incdeaths0),
+             prevdeaths=sum(prevdeaths0),
+             inctb=sum(inctb0),
+             rsatt=sum(rsatt0),
+             rratt=sum(rratt0),
+             ptc=sum(ptc0),
+             hhc=sum(hhc),
+             cost=sum(cost0)),
+          by = .(repn,intervention,`PT regimen`)]
+IVS0 <- IVS0[intervention=='PT to <15']
+IVS0[,intervention:='No HHCM']
+IVS0[,`PT regimen`:='none']
+IVS <- rbind(IVS,IVS0)
+
+## NOTE check
+IVS[,table(`PT regimen`,intervention)]
+
+rsIVS <- IV[DST=='RS',.(deaths=sum(deaths),
+                        lys=sum(lys1),
+                        incdeaths=sum(incdeaths),
+                        prevdeaths=sum(prevdeaths),
+                        inctb=sum(inctb)),
+            by = .(repn,intervention,`PT regimen`)]
+rrIVS <- IV[DST!='RS',.(deaths=sum(deaths),
+                        lys=sum(lys1),
+                        incdeaths=sum(incdeaths),
+                        prevdeaths=sum(prevdeaths),
+                        inctb=sum(inctb)),
+            by = .(repn,intervention,`PT regimen`)]
+
+rsDIVS <- IV[DST=='RS',.(Ddeaths=sum(deaths-deaths0),
+                         Dlys=sum(lys1-lys0),
+                         Dincdeaths=sum(incdeaths-incdeaths0),
+                         Dprevdeaths=sum(prevdeaths-prevdeaths0),
+                         Dinctb=sum(inctb-inctb0)),
+            by = .(repn,intervention,`PT regimen`)]
+rrDIVS <- IV[DST!='RS',.(Ddeaths=sum(deaths-deaths0),
+                         Dlys=sum(lys1-lys0),
+                         Dincdeaths=sum(incdeaths-incdeaths0),
+                         Dprevdeaths=sum(prevdeaths-prevdeaths0),
+                         Dinctb=sum(inctb-inctb0)),
+            by = .(repn,intervention,`PT regimen`)]
+
+rsIVS0 <- IV[DST=='RS' & `PT regimen`=='none',
+             .(deaths=sum(deaths0),
+               lys=sum(lys0),
+               incdeaths=sum(incdeaths0),
+               prevdeaths=sum(prevdeaths0),
+               inctb=sum(inctb0)),
+            by = .(repn,intervention,`PT regimen`)]
+rsIVS0[,table(intervention,`PT regimen`)]
+rrIVS0 <- IV[DST!='RS'  & `PT regimen`=='none',
+             .(deaths=sum(deaths0),
+               lys=sum(lys0),
+               incdeaths=sum(incdeaths0),
+               prevdeaths=sum(prevdeaths0),
+               inctb=sum(inctb0)),
+            by = .(repn,intervention,`PT regimen`)]
+
+## rrIVS0 <- rrIVS0[intervention=='PT to <15']
+rrIVS0[,intervention:='No HHCM']
+rrIVS <- rbind(rrIVS,rrIVS0)
+## rsIVS0 <- rsIVS0[intervention=='PT to <15']
+rsIVS0[,intervention:='No HHCM']
+rsIVS <- rbind(rsIVS,rsIVS0)
+
+## outcomes in total
+vrs <- c('deaths','lys','incdeaths','prevdeaths','inctb')
+tmp1 <- makehilo(IVS,cls=vrs); tmp1[,drtype:="all"]
+tmp2 <- makehilo(rsIVS,cls=vrs); tmp2[,drtype:="RS"]
+tmp3 <- makehilo(rrIVS,cls=vrs); tmp3[,drtype:="RR"]
+out1 <- rbindlist(list(tmp1,tmp2,tmp3))
+drop <- c(paste(vrs,"lo",sep="."),paste(vrs,"hi",sep="."))
+out1[,c(drop):=NULL]
+out1[,rtype:="total"]
+
+## incremental outcomes
+dvrs <- paste0('D',vrs)
+tmp1 <- makehilo(DIVS,cls=dvrs); tmp1[,drtype:="all"]
+tmp2 <- makehilo(rsDIVS,cls=dvrs); tmp2[,drtype:="RS"]
+tmp3 <- makehilo(rrDIVS,cls=dvrs); tmp3[,drtype:="RR"]
+out2 <- rbindlist(list(tmp1,tmp2,tmp3))
+drop <- c(paste(dvrs,"lo",sep="."),paste(dvrs,"hi",sep="."))
+out2[,c(drop):=NULL]
+out2[,rtype:="incremental"]
+setnames(out2,old=dvrs,new=vrs)
+
+## combine & relevel
+out <- rbind(out1,out2)
+out <- melt(out,id=c("rtype","drtype","intervention","PT regimen"))
+out$drtype <- factor(out$drtype,levels=c("RS",'RR','all'))
+out$rtype <- factor(out$rtype,levels=c('total','incremental'))
+out$variable <- factor(out$variable,
+                       levels=c('inctb','incdeaths','prevdeaths',
+                                'deaths','lys'))
+out$intervention <- factor(out$intervention,
+                           levels=c("No HHCM","HHCM, no PT",
+                                    "PT to <5/HIV+/TST+","PT to <5/HIV+",
+                                    "PT to <15"))
+out$`PT regimen` <- factor(out$`PT regimen`,
+                           levels=c("none","FQ","BDQ"))
+
+## reshape
+outcomes <- dcast(out,rtype + drtype + variable ~
+                        intervention + `PT regimen`)
+
+fwrite(outcomes,file=here('output/table_outcomes.csv'))
