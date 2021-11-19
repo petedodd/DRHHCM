@@ -96,9 +96,16 @@ which will be a bit slow first time around
 TODO
 - see the few flagged checks in script
 
+## Agenda
+
+- parameters check
+- long table check
+- discussion of results to include in supplementary
+- modelling assumptions:
 
 ## Other processing TODOs ##
 
 - table 2 results too much?
 - see yellow in tables and check
 - hhc unc?
+- add FQR methods

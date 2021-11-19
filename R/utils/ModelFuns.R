@@ -8,11 +8,12 @@ library(here)
 ## read in data & build distributions (second version with automatic test output)
 PD <- read.csv(here('indata/DRHHCMparms.csv'))
 PZ <- parse.parmtable(data = PD) #build parameter object no test
-## uncomment below to generate test plots etc:
+## ## uncomment below to generate test plots etc:
 ## if(!file.exists(here('output/test'))) dir.create(here('output/test'))
 ## PZ <- parse.parmtable(data = PD, #test!
 ##                       outfile=here('output/test/zzout.csv'),
-##                       testdir = here('test'))
+##                       testdir = here('output/test'))
+## ## montage *.png -mode concatenate -tile 5x6 zout.jpg
 names(PZ)                               #check what we've got
 
 
