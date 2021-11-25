@@ -31,6 +31,8 @@ The following R packages must be available:
 - data manipulation: data.table, dplyr,
 - plotting: ggplot2, ggthemes, scales, ggrepel, ggpubr
 - calculations: discly, HEdtree (via devtools::install_github('petedodd/packagename'))
+- spatial strucutre (optional, since output also included): tmap, rworldmap, spdep
+
 
 The estimates of household size by index TB age/sex is based on previously published work:
 
@@ -46,10 +48,12 @@ Commenting out the rep limitation in file 04 around line 14 (ie using 100 replic
 
 
 ## TODO other changes
-- need to include the resampling for FQR 
-(/home/pjd/Dropbox/Holocron/tmp/hhmdrstaging/dr)
+
 - need to include the costs
 
+### 00.FQRinRR.R ###
+
+This file generates the estimates of FQR resistance in RR. It is optional to run this analysis as the output is included in indata/. Within this analysis, there are two parts: part 1 generates the nearest neighbour structure and is also optional (output in indata/); part 2 uses the neighbour structure to generate the FQR estimates. 
 
 ### 01.HHcontactNumbers.R ###
 
@@ -99,9 +103,6 @@ TODO
 
 ## Other processing TODOs ##
 
-- table 2 results too much?
-- see yellow in tables and check
 - hhc unc?
-- add FQR methods
 - hivp; hivi
 - HIC or not
