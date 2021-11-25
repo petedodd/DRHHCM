@@ -116,6 +116,7 @@ load(here('indata/acs_kn5.Rdata'))
 ## read in WHO DS data
 RS <- fread(here('indata/TB_dr_surveillance_2020-10-15.csv'))
 
+
 ## variables of interest
 nmz <- c('iso3','g_whoregion','year',
          'rr_dst_rlt','rr_dr_fq','rr_fqr')
@@ -222,18 +223,18 @@ FRF[,id:=rep(1:N,length(unique(iso3)))] #add a rep count
 
 save(FRF,file=here('data/FRF.Rdata'))
 
-## inspect TODO more
-FRF[,.(f=mean(fqr)),by=g_whoregion]
-sm <- FRF[,.(f=mean(fqr)),by=iso3]
-max(sm$f)
-min(sm$f)
-sm[which.max(f)]
-sm[which.min(f)]
-sm[iso3=='RUS']
-sm[iso3=='UKR']
-sm[iso3=='FRA']
-sm[iso3=='ZAF']
-sm[iso3=='IND']
-sm[iso3=='CHN']
 
+## graph of this data
+library(ggplot2)
 
+load(file=here('data/FRF.Rdata'))
+
+GP <- ggplot(FRF,aes(iso3,fqr)) +
+  stat_summary(geom='pointrange',fun.data = median_hilow)+
+  facet_wrap(~g_whoregion,scales = 'free_y')+
+  coord_flip()+
+  scale_y_continuous(label=scales::percent)+ylab('FQR in RR TB')
+
+ggsave(GP,file=here('data/FRF.png'),h=12,w=15)
+
+FRF[,mean(fqr),by=g_whoregion]

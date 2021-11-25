@@ -86,7 +86,7 @@ utils/
 
 TODO
 - check HIV-specific IRR for PT used
-- WBL for LTBI?
+- WBL for LTBI
 
 ### 05.outputs.R ###
 
