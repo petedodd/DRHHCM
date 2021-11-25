@@ -521,7 +521,7 @@ outcomes <- dcast(out,rtype  + variable ~
                         intervention + `PT regimen`)
 
 fwrite(outcomes,file=here('output/table_outcomes.csv'))
-## TODO bugs in table
+
 
 ## === resources table
 rzn <- c('hhc','ptc','rsatt','rratt')
@@ -556,13 +556,6 @@ rez$`PT regimen` <- factor(rez$`PT regimen`,
 ## reshape
 resources <- dcast(rez,rtype + variable ~
                         intervention + `PT regimen`)
-
-## change those not computed properly by above:
-resources[rtype=='total' & variable=='hhc',
-          `No HHCM_none`:='0 (0 - 0)']
-resources[rtype=='total' & variable=='ptc',
-          `HHCM, no PT_none`:='0 (0 - 0)'] #TODO check
-resources[is.na(`No HHCM_none`), `No HHCM_none`:='0 (0 - 0)']
 
 fwrite(resources,file=here('output/table_resources.csv'))
 
@@ -612,8 +605,12 @@ WM <- W[,.(Dcost=mean(Dcost),Dlys=mean(Dlys)),
         by=.(`PT regimen`,intervention)]
 WM[,ICER:=Dcost/Dlys]
 
+## rescale costs to millions
+W[,c('cost','cost0','Dcost'):=.(cost/1e6,cost0/1e6,Dcost/1e6)]
+W0[,cost0:=cost0/1e6]
 
 
+## --- compute table from here:-----
 ## compute mean/hi/lo
 qtys <- c('deaths','cost','lys',
           'Ddeaths','Dcost','Dlys')
@@ -621,7 +618,7 @@ Wo <- makehilo(W,qtys)
 
 ## add ICERS
 Wo <- merge(Wo,
-           W[,.(ICER=paste0(round(mean(Dcost)/mean(Dlys)))),
+           W[,.(ICER=paste0(round(1e6*mean(Dcost)/mean(Dlys)))), #NOTE including 1 mln due to scaling above
              by=.(`PT regimen`,intervention)],
            by=c('PT regimen','intervention')
            )
@@ -642,6 +639,7 @@ Wo$`PT regimen` <- factor(Wo$`PT regimen`,
 Wo <- dcast(Wo,variable~intervention+`PT regimen`,value.var = 'value')
 setkey(Wo,variable)
 Wo <- Wo[c("cost","deaths","lys","Dcost","Ddeaths","Dlys","ICER")]
+
 
 
 tmp <- W0[,lapply(.SD,seehere),.SDcols=c('deaths0','cost0','lys0')]
