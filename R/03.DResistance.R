@@ -4,11 +4,12 @@ rm(list=ls())
 library(here)
 library(data.table)
 library(HEdtree)
+set.seed(123)
 
 PZ <- read.csv(here('indata/DRHHCMparms.csv')) #parameter table
 PZ <- parse.parmtable(PZ)               #for concordance
 
-load(here('indata/FRF.Rdata')) #TODO need to include script & move to data/
+load(here('indata/FRF.Rdata')) #data on FQR prevalence
 
 ## data on paed RR CDRs
 RRest <- fread(here('data/RRest.csv'))
@@ -58,6 +59,11 @@ PSO[,cab:=cdr514ab]
 PSO[,acat:="[5,15)"]                     #age group
 
 
+## add uncertainty in HHC: log normal approximation
+PSA[,u5hhc:=rlnorm(nrow(PSA),u5hhc.l,u5hhc.sdl)]
+PSO[,o5hhc:=rlnorm(nrow(PSO),o5hhc.l,o5hhc.sdl)]
+
+
 ## join these after harmonizing names
 del <- grep('l$',names(PSA),value=TRUE)
 PSA[,c(del):=NULL]
@@ -73,6 +79,7 @@ nmz <- gsub('o5','',nmz)
 names(PSO)[who] <- nmz
 ## join
 PSA <- rbind(PSA,PSO,fill=TRUE)
+PSA[,hhc.sd:=NULL]
 rm(PSO)
 
 ## convert to beta a/b parms for both age cats
@@ -99,7 +106,7 @@ PSA[cdr.a+cdr.b==0,c('cdr.a','cdr.b'):=.(1e-3,1e-3)] #safety
 
 ## checks
 PSA[,summary(hhc)]
-PSA[repn==1,sum(rrmdr_15plus_tx)/2e5]   #170K
+PSA[repn==1,sum(rrmdr_15plus_tx)/2e5]
 
 ## concordance (assuming all RR index cases):
 ## NOTE read in PZ for this parameter
@@ -135,10 +142,10 @@ H[!is.finite(hivprop),hivprop:=0]
 PSA <- merge(PSA,H,by='iso3')
 
 ## scale down using HIV HH concordance for children
-PSA[acat=="[0,5)", hivprop:=hivprop*PZ$HHhivprev04$r(nrow(PSA)/2)] #child infection risk
-PSA[acat=="[5,15)", hivprop:=hivprop*PZ$HHhivprev514$r(nrow(PSA)/2)]#child infection risk
-
-PSA
+PSA[acat=="[0,5)",
+    hivprop:=hivprop*PZ$HHhivprev04$r(nrow(PSA)/2)] #child infection risk
+PSA[acat=="[5,15)",
+    hivprop:=hivprop*PZ$HHhivprev514$r(nrow(PSA)/2)]#child infection risk
 
 
 save(PSA,file=here('data/PSA.Rdata'))
