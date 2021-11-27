@@ -370,6 +370,38 @@ GP <- ggplot(CECR,
 ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)
 ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
 
+
+
+## --- supplementary version with all countries
+tmp <- unique(CEC[!is.na(gdp),.(gdp,iso3)])
+lvls <- tmp[order(gdp),iso3]
+tmp[,c('intervention','PT regimen'):=NA]
+
+CEC$iso3 <- factor(CEC$iso3,levels=lvls,ordered = TRUE)
+tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
+
+tp <- 7e3
+GP <- ggplot(CEC[cpda>0 & iso3 %in% unique(tmp$iso3)],
+       aes(iso3,cpda,
+           shape=intervention,
+           group=iso3,
+           col=`PT regimen`))+
+  geom_line(data=tmp,aes(iso3,gdp/1,group=1))+
+  geom_line(data=tmp,aes(iso3,gdp/2,group=1),lty=2)+
+  geom_line(data=tmp,aes(iso3,gdp/5,group=1),lty=3)+
+  geom_point() +
+  annotate(geom='text',y=tp*0.8,x=100,label='1.0xGDP')+
+  annotate(geom='text',y=tp*0.8,x=120,label='0.5xGDP')+
+  annotate(geom='text',y=tp*0.8,x=140,label='0.2xGDP')+
+  coord_flip()+
+  scale_y_continuous(label=absspace,limits=c(0,tp))+
+  xlab('Country ISO3 code')+
+  ylab('Cost per 3%-discounted DALY averted (USD)')+
+  theme_classic()+ggpubr::grids()+
+  theme(legend.position=c(0.8,0.2))
+
+ggsave(GP,file=here('output/Sfigure_CE.png'),w=20,h=25)
+
 ## =================================
 ## TABLES
 ## =================================
