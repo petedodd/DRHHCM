@@ -13,6 +13,14 @@ PSA[,value:=rrmdr_15plus_tx] #index cases
 print(object.size(PSA),units='auto')
 PSA <- PSA[repn<=100] #NOTE make smaller for laptop testing
 
+## join in old WB income level
+WBIL <- fread(here('indata/WBIL.csv'))
+WBIL[,hinc:=FALSE]
+WBIL[grepl('High',income),hinc:=TRUE]
+WBIL[,table(hinc,income)] #check
+WBIL <- WBIL[,.(iso3,hinc)]
+PSA <- merge(PSA,WBIL,by='iso3',all.x = TRUE,all.y=FALSE)
+
 ## read in cost data
 C0 <- fread(here('indata/Country_unit_costs2.csv'))
 C2 <- MakeCostData(C0[,.(iso3,unit_cost,cost.m,cost.sd)],max(PSA$repn))

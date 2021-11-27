@@ -42,7 +42,7 @@ CFRtxY <- function(a,hiv=0,art=0){#NB optimized for clarity not speed
   ## hivartOR
   Z <- PZ$hivartOR$r(length(a))
   hor <- rep(1,length(a))
-  tmp <- logit(tmp)                     #transformt
+  tmp <- logit(tmp)                     #transform
   tmp[hiv>0] <- tmp[hiv>0]+Z[hiv>0,1]
   tmp[art>0] <- tmp[art>0]+Z[art>0,2]
   tmp <- ilogit(tmp)                    #inverse transform
@@ -167,7 +167,7 @@ addVariables <- function(D){
   D[,RR:=RR0]                         #default
   print('PT variables added!')
   D[,coprev:=coprev(age)]                #coprevalent TB
-  D[,ltbi.prev:=ltbi.prev(age,coprev)]   #LTBI prevalence
+  D[,ltbi.prev:=ltbi.prev(age,coprev,hinc)]   #LTBI prevalence
   ## HIV
   print('Prevalences added!')
   D[,pprogn:=progprob(age,hiv,art)] #prgn in LTBI+
@@ -189,8 +189,7 @@ splitbyDRtypes <- function(D){
   D[,DST:=rep(c('RS','FS','FR'),nrow(D)/3)]
   ## hhc = (notes fraction: age, sex) x (HHC | age,sex)
   ## rr-hhc = (RR index cases) x hhc
-  D[,value:=rrmdr_15plus_tx * hhc]   #TODO check + uncertainty
-  ## D[,c('hhc','hhc.sd'):=NULL]        #drop these now
+  D[,value:=rrmdr_15plus_tx * hhc]
   ## prob 'concordance' match source; rest RS
   D[DST=='RS',value:=value0 * (1-concord) ]
   D[DST=='FS',value:=value0 * concord *  (1-FQR)]

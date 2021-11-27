@@ -89,7 +89,6 @@ H$children$`no active TB`$`PT`$`incident TB`$`RR-ATT`$dies$p <- 'CFRrtx'
 H$children$`no active TB`$`PT`$`incident TB`$`RR-ATT`$survives$p <- '1-CFRrtx'
 
 
-## TODO add other quantities
 ## check
 print(H,'check','p','deaths')
 print(H,'inctb','incdeaths')
