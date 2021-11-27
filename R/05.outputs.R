@@ -222,6 +222,23 @@ IVc0 <- IV[,.(deaths=sum(deaths0),cost=sum(cost0),lys=sum(lys0)),
 IVc0 <- IVc0[,.(deaths0=mean(deaths),cost0=mean(cost),lys0=mean(lys)),
              by = .(iso3,intervention,`PT regimen`)]
 
+
+## data for CEACs
+EAC <- IV[iso3 %in% HBC[g.hbmdr==1,iso3]]
+EAC <- EAC[,.(dDALYs=sum(lys-lys0),dcost=sum(cost-cost0)),
+           by=.(iso3,`PT regimen`,intervention,repn)]
+threshold <- seq(from=0,to=5e3,by=100)
+CEAC <- list()
+for(th in threshold){
+  tmp <- EAC[,.(prob=mean(-th*dDALYs-dcost>0)),
+             by=.(iso3,`PT regimen`,intervention)]
+  tmp[,threshold:=th]
+  CEAC[[paste0(th)]] <- tmp
+}
+CEAC <- rbindlist(CEAC)
+
+
+
 ## =================================
 ## FIGURES
 ## =================================
@@ -370,6 +387,19 @@ GP <- ggplot(CECR,
 ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)
 ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
 
+
+## --- supplementary figure CEACs
+GP <- ggplot(CEAC,aes(threshold,prob,col=`PT regimen`,lty=intervention))+
+  scale_color_manual(values=colz)+
+  geom_line() +
+  facet_wrap(~iso3,ncol=5)+
+  scale_y_continuous(label=scales::percent)+
+  scale_x_continuous(label=scales::comma)+
+  xlab('Cost-effectiveness threhsold (USD)')+
+  ylab('Probability cost-effective')
+## GP
+
+ggsave(GP,file=here('output/Sfigure_CEAC.png'),w=12,h=12)
 
 
 ## --- supplementary version with all countries
