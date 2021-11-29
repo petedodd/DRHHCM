@@ -144,17 +144,18 @@ addVariables <- function(D){
   D[,CDR:=rbeta(nrow(D),cdr.a,cdr.b)]  #coprev CDR
   D[,CDRi:=rbeta(nrow(D),cdr.a,cdr.b)] #incidence CDR
   ## see Appendix: scaled up for incidence
+  D[,CDR:=pmin((1+runif(nrow(D)))*CDR,1)] #scaled mean
   D[,CDRi:=pmin((1+runif(nrow(D)))*CDRi,1)] #scaled mean
   D[,rrCDR:=rbeta(nrow(D),rrcdr.a,rrcdr.b)]
   D[,rrCDRi:=rbeta(nrow(D),rrcdr.a,rrcdr.b)] #
-  D[rrCDR>CDR,rrCDR:=CDR]; D[rrCDRi>CDRi,rrCDRi:=CDRi];                      #safety
+  D[rrCDR>CDR,rrCDR:=CDR]; D[rrCDRi>CDRi,rrCDRi:=CDRi]; #safety
   ## prob. RS ATT if ATT, coprev/omc
   ## (1-p)CDR = RRCDR; p=1-RRCDR/CDR
   D[DST=='RS',pRSATT:=1.0]; D[DST=='RS',pRSATTi:=1.0];          # no FP
   D[DST!='RS',pRSATT:=1-rrCDR/CDR]; D[DST!='RS',pRSATTi:=1-rrCDRi/CDRi];
   print('CDRs added!')
   ## CFR on RS-ATT
-  D[,CFRnotx:=CFRtxN(age,hiv,art)]                #CFR not on ATT NOTE HIV
+  D[,CFRnotx:=CFRtxN(age,hiv,art)]   #CFR not on ATT NOTE HIV
   D[DST=='RS',CFRstx:=CFRtxY(age,hiv,art)]
   D[DST!='RS',CFRstx:=CFRnotx] #assume like no tx
   ## CFR on RR-ATT
@@ -162,8 +163,8 @@ addVariables <- function(D){
   D[DST!='RS',CFRrtx:=PZ$CFRrtx.RR$r(sum(DST!='RS'))] #Harausz
   print('CFRs added!')
   ## RR of incident TB under PT
-  D[,RR0:=IPTrr(sum(nrow(D)))]        #base efficacy of IPT TODO check back HIV dependence
-  D[,RR1:=IPTrr(sum(nrow(D)),tst="+ve")]   #base efficacy of PT among TST+ve
+  D[,RR0:=IPTrr(sum(nrow(D)),hiv)]  #base efficacy of IPT
+  D[,RR1:=IPTrr(sum(nrow(D)),tst="+ve")]   #base efficacy of PT: TST+ve
   D[,RR:=RR0]                         #default
   print('PT variables added!')
   D[,coprev:=coprev(age)]                #coprevalent TB
