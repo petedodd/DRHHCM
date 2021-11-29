@@ -20,6 +20,8 @@ WBIL[grepl('High',income),hinc:=TRUE]
 WBIL[,table(hinc,income)] #check
 WBIL <- WBIL[,.(iso3,hinc)]
 PSA <- merge(PSA,WBIL,by='iso3',all.x = TRUE,all.y=FALSE)
+PSA[is.na(hinc),unique(iso3)] #a few missing
+PSA[is.na(hinc),hinc:=FALSE]  #not high-income by hand
 
 ## read in cost data
 C0 <- fread(here('indata/Country_unit_costs2.csv'))
