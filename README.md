@@ -47,9 +47,9 @@ With a full-size PSA, a reasonable amount of RAM is needed (it was run on a mach
 Commenting out the rep limitation in file 04 around line 14 (ie using 100 replicates) should allow use on a machine with (eg) 8Gb RAM.
 
 
-## TODO other changes
+## Description of analysis scripts
 
-- need to include the costs
+- need to include the costs TODO
 
 ### 00.FQRinRR.R ###
 
@@ -70,40 +70,37 @@ This file builds the base PSA object for onward analyses.
 
 ### 04.calculations.R ###
 
-This file performs the calculations. 
+This file performs the calculations. It contains functions defining the interventions, and calculating the costs from unit costs. After running the two scripts below in utils/, the outcome data for all scenarios are computed and saved. 
 
 TODO
 - remove 100 rep limitation (late adjustment, not on laptop)
 
-It loads:
+It sources:
 
 utils/
 - maketree.R (builds decision tree)
 - ModelFuns.R (functions for constructing necessary variables)
 
+#### maketree.R ####
+
+This file constructs the decision tree and makes the functions to compute outcomes.
 
 #### ModelFuns.R ####
 
-TODO
-- check HIV-specific IRR for PT used
-- WBL for LTBI
+This contains most of the non-structural modelling logic. It loads the parameter distributions (with test output if uncommented), specifies the dependencies of transition probabilities on attributes, and includes other functions to generate a PSA initial dataset.
 
 ### 05.outputs.R ###
 
-Calls:
+This file computes tabular and graphical summary output from the PSA data.
+
+It sources:
 
 utils/
 - makeLYs.R
 
-which will be a bit slow first time around
+which will be a bit slow first time around. This script computes mean discounted life-years for each country to associate with deaths.
 
-TODO
-- see the few flagged checks in script
+This computations uses the R package https://github.com/petedodd/discly whose underlying data is described in the paper and repo:
 
-
-## Other processing TODOs ##
-
-- hivp; hivi
-- HIC or not
-- LYs where discounted when not
-- ensure DLD LVX as reported
+- http://dx.doi.org/10.1016/S1473-3099(20)30919-1
+- https://github.com/petedodd/post
