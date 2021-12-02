@@ -194,10 +194,10 @@ PSA[,summary(progn)]
 PSA[,summary(coprev)]
 
 ## ====== INTERVENTIONS
-## all intervention scenarios include finding all coprev & appropriate ATT:
+## NOTE all intervention scenarios include finding all coprev & appropriate ATT:
 PSA[,CDR:=1.0]                  #all coprev detected
-PSA[,rrCDR:=1.0]                #all coprev detected TODO check! (not all bac+)
-PSA[DST!='RS',pRSATT:=0.0]      #no RR coprev treated as RS, ie rrCDR=1 TODO check
+PSA[,rrCDR:=1.0]                #all coprev detected
+PSA[DST!='RS',pRSATT:=0.0]      #no RR coprev treated as RS, ie rrCDR=1
 
 ## === PT to <5/HIV
 PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
@@ -300,12 +300,10 @@ PSA <- PSA[repn<=100] #NOTE make smaller for laptop testing
 PSA <- splitbyDRtypes(PSA) #split by DR
 PSA <- splitbyHIV(PSA)   #add HIV
 
-PSA[acat=='[0,5)',age:=1.0]; PSA[acat=='[5,15)',age:=10.0] #TODO remove
+PSA[acat=='[0,5)',age:=1.0]; PSA[acat=='[5,15)',age:=10.0] # a bit hacky
 PSA[,DST:='RS']   #overwrites and makes everything RS NOTE needed before add variables 
 addVariables(PSA)                #NOTE return by side-effect
 PSA <- merge(PSA,C2,by=c('iso3','repn')) #merge in cost data
-## PSA[,fracSymptomatic:=0.3] #TODO build into parms
-## PSA[,fracAE:=0.0] #TODO AE for PT build into parms
 PSA[,summary(CDR)]
 PSA[,mean(CDR),by=acat]
 PSA[,summary(CDRi)]
@@ -328,9 +326,8 @@ TI0H[,intervention:='none']; TI0H[,`PT regimen`:='none'];
 ## all intervention scenarios include finding all coprev & appropriate ATT:
 PSA[,CDR:=1.0]                  #all coprev detected
 PSA[,summary(CDRi)]
-## PSA[,CDRi:=1.0]                  #all incidence detected TODO NOTE
-PSA[,rrCDR:=1.0]                #all coprev detected TODO check! (not all bac+)
-PSA[DST!='RS',pRSATT:=0.0]  #no RR coprev treated as RS, ie rrCDR=1 TODO check
+PSA[,rrCDR:=1.0]            #NOTE all coprev detected
+PSA[DST!='RS',pRSATT:=0.0]  #no RR coprev treated as RS, ie rrCDR=1 NOTE
 PSA[,PTcov:=0.0]
 
 ## === PT to <5/HIV

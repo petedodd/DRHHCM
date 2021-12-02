@@ -321,11 +321,6 @@ save(DL,file=here('data/DL.Rdata'))
 ## === making parent data frame for younger children and calculating HH contacts
 load(here('data/DL.Rdata'))
 
-## simplifying for u5 only
-DL[,LE:=(`[0,1)`+4*`[1,5)`)/5]
-DL[,`[0,1)`:=NULL]; DL[,`[1,5)`:=NULL];
-DL[,`[5,10)`:=NULL]; DL[,`[10,15)`:=NULL]; 
-
 
 ## making notifications proportions
 DL[,totv:=sum(value),by=iso3]
