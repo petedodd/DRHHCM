@@ -117,9 +117,9 @@ IPTrr <- function(a,hiv=0,
   ans
 }
 IPTrr(1:10)
-summary(IPTrr(runif(1e3),hiv=0)) #0.66
-summary(IPTrr(runif(1e3),hiv=1))
-summary(IPTrr(runif(1e3),tst='yes')) #0.37
+summary(IPTrr(runif(1e3),hiv=0)) #0.37
+summary(IPTrr(runif(1e3),hiv=1)) #0.35
+summary(IPTrr(runif(1e3),tst='yes')) #0.09
 
 ## make cost data
 MakeCostData <- function(csts,          #base data table of cost data
@@ -163,8 +163,8 @@ addVariables <- function(D){
   D[DST!='RS',CFRrtx:=PZ$CFRrtx.RR$r(sum(DST!='RS'))] #Harausz
   print('CFRs added!')
   ## RR of incident TB under PT
-  D[,RR0:=IPTrr(sum(nrow(D)),hiv)]  #base efficacy of IPT
-  D[,RR1:=IPTrr(sum(nrow(D)),tst="+ve")]   #base efficacy of PT: TST+ve
+  D[,RR0:=IPTrr(age,hiv)]  #base efficacy of IPT
+  D[,RR1:=IPTrr(age,tst="+ve")]   #base efficacy of PT: TST+ve
   D[,RR:=RR0]                         #default
   print('PT variables added!')
   D[,coprev:=coprev(age)]                #coprevalent TB

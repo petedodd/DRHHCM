@@ -10,8 +10,9 @@ source(here('R/utils/ModelFuns.R'))     #parametrization & tree labeller
 load(here('data/PSA.Rdata'))
 PSA[,value:=rrmdr_15plus_tx] #index cases
 
+restrictno <- 100  #NOTE make smaller for laptop testing
 print(object.size(PSA),units='auto')
-PSA <- PSA[repn<=100] #NOTE make smaller for laptop testing
+PSA <- PSA[repn<=restrictno]
 
 ## join in old WB income level
 WBIL <- fread(here('indata/WBIL.csv'))
@@ -200,9 +201,11 @@ PSA[,rrCDR:=1.0]                #all coprev detected
 PSA[DST!='RS',pRSATT:=0.0]      #no RR coprev treated as RS, ie rrCDR=1
 
 ## === PT to <5/HIV
+cat('=== PT to <5/HIV\n')
 PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
 
 ## --- (no PT)
+cat('--- (no PT)\n')
 PSA[,RR:=1.0] # set PT efficacy
 setCosts(PSA,intervention='No HHCM',regimen="None")
 PSA <- runallfuns(PSA)      #calculate
@@ -210,80 +213,94 @@ I1H <- resultnoHIV(PSA)
 I1H[,intervention:='HHCM, no PT']; I1H[,`PT regimen`:='none'];
 
 ## --- (FQ)
+cat('--- (FQ)\n')
 setPTeff(PSA,regimen='FQ')
 setCosts(PSA,intervention='PT to <5/HIV+',regimen="FQ",rgc="LVX")
 PSA <- runallfuns(PSA)
 I1F <- resultnoHIV(PSA)
 I1F[,intervention:='PT to <5/HIV+']; I1F[,`PT regimen`:='FQ'];
 ## same but MXF
+cat('--- (FQ/MXF)\n')
 setCosts(PSA,intervention='PT to <5/HIV+',regimen="FQ",rgc="MXF")
 PSA <- runallfuns(PSA)
 I1Fb <- resultnoHIV(PSA)
 I1Fb[,intervention:='PT to <5/HIV+']; I1Fb[,`PT regimen`:='MXF'];
 
 ## --- (BDQ)
+cat('--- (BDQ)\n')
 setPTeff(PSA,regimen='BDQ')
 setCosts(PSA,intervention='PT to <5/HIV+',regimen="BDQ",rgc="BDQ")
 PSA <- runallfuns(PSA)
 I1B <- resultnoHIV(PSA)
 I1B[,intervention:='PT to <5/HIV+']; I1B[,`PT regimen`:='BDQ'];
 ## same for DLM
+cat('--- (DLM)\n')
 setCosts(PSA,intervention='PT to <5/HIV+',regimen="BDQ",rgc="DLM")
 PSA <- runallfuns(PSA)
 I1Bb <- resultnoHIV(PSA)
 I1Bb[,intervention:='PT to <5/HIV+']; I1Bb[,`PT regimen`:='DLM'];
 
 ## === PT to <15
+cat('=== PT to <15\n')
 PSA[,PTcov:=1]                         #set coverages
 
 ## --- (FQ)
+cat('--- (FQ)\n')
 setPTeff(PSA,regimen='FQ') # set PT efficacy
 setCosts(PSA,intervention='PT to <15',regimen="FQ",rgc="LVX")
 PSA <- runallfuns(PSA)
 I2F <- resultnoHIV(PSA)
 I2F[,intervention:='PT to <15'];I2F[,`PT regimen`:='FQ'];
 ## also MXF
+cat('--- (FQ/MXF)\n')
 setCosts(PSA,intervention='PT to <15',regimen="FQ",rgc="MXF")
 PSA <- runallfuns(PSA)
 I2Fb <- resultnoHIV(PSA)
 I2Fb[,intervention:='PT to <15'];I2Fb[,`PT regimen`:='MXF'];
 
 ## --- (BDQ)
+cat('--- (BDQ)\n')
 setPTeff(PSA,regimen='BDQ') # set PT efficacy
 setCosts(PSA,intervention='PT to <15',regimen="BDQ",rgc="BDQ")
 PSA <- runallfuns(PSA)
 I2B <- resultnoHIV(PSA)
 I2B[,intervention:='PT to <15'];I2B[,`PT regimen`:='BDQ']
 ## also DLM
+cat('--- (DLM)\n')
 setCosts(PSA,intervention='PT to <15',regimen="BDQ",rgc="DLM")
 PSA <- runallfuns(PSA)
 I2Bb <- resultnoHIV(PSA)
 I2Bb[,intervention:='PT to <15'];I2Bb[,`PT regimen`:='DLM']
 
 ## === PT to <5/HIV/TST
+cat('=== PT to <5/HIV/TST\n')
 PSA[,PTcov:=0.0]
 PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
 PSA[acat=='[5,15)' & hiv==0, PTcov:=ltbi.prev] # all & only those with LTBI among >5/H+
 
 ## --- (FQ)
+cat('--- (FQ)\n')
 setPTeff(PSA,regimen='FQ',tst='+ve') # set PT efficacy
 setCosts(PSA,intervention='PT to <5/HIV+/TST+',regimen="FQ",rgc="LVX")
 PSA <- runallfuns(PSA)
 I3F <- resultnoHIV(PSA)
 I3F[,intervention:='PT to <5/HIV+/TST+'];I3F[,`PT regimen`:='FQ'];
 ## also MXF
+cat('--- (FQ/MXF)\n')
 setCosts(PSA,intervention='PT to <5/HIV+/TST+',regimen="FQ",rgc="MXF")
 PSA <- runallfuns(PSA)
 I3Fb <- resultnoHIV(PSA)
 I3Fb[,intervention:='PT to <5/HIV+/TST+'];I3Fb[,`PT regimen`:='MXF'];
 
 ## --- (BDQ)
+cat('--- (BDQ)\n')
 setPTeff(PSA,regimen='BDQ',tst='+ve') # set PT efficacy
 setCosts(PSA,intervention='PT to <5/HIV+/TST+',regimen="BDQ",rgc="BDQ")
 PSA <- runallfuns(PSA)
 I3B <- resultnoHIV(PSA)
 I3B[,intervention:='PT to <5/HIV+/TST+'];I3B[,`PT regimen`:='BDQ']
 ## also DLM
+cat('--- (DLM)\n')
 setCosts(PSA,intervention='PT to <5/HIV+/TST+',regimen="BDQ",rgc="DLM")
 PSA <- runallfuns(PSA)
 I3Bb <- resultnoHIV(PSA)
@@ -292,13 +309,16 @@ I3Bb[,intervention:='PT to <5/HIV+/TST+'];I3Bb[,`PT regimen`:='DLM']
 ## === test with all RS
 ## NOTE for safety, may be as well to reload PSA & addvariables
 ## in case there are any side effects left over from above interventions
-
+cat('=== test with all RS\n')
 ## data from previous analyses
 load(here('data/PSA.Rdata')); cat('reloading PSA for safety!\n')
 PSA[,value:=rrmdr_15plus_tx]
-PSA <- PSA[repn<=100] #NOTE make smaller for laptop testing
+PSA <- PSA[repn<=restrictno] #NOTE make smaller for laptop testing
 PSA <- splitbyDRtypes(PSA) #split by DR
 PSA <- splitbyHIV(PSA)   #add HIV
+PSA <- merge(PSA,WBIL,by='iso3',all.x = TRUE,all.y=FALSE)
+PSA[is.na(hinc),unique(iso3)] #a few missing
+PSA[is.na(hinc),hinc:=FALSE]  #not high-income by hand
 
 PSA[acat=='[0,5)',age:=1.0]; PSA[acat=='[5,15)',age:=10.0] # a bit hacky
 PSA[,DST:='RS']   #overwrites and makes everything RS NOTE needed before add variables 
@@ -316,6 +336,7 @@ PSA[,pRSATTi:=1.0]
 ## BASELINE
 PSA[,PTcov:=0.0]
 setCosts(PSA,intervention='None',regimen="INH")
+cat('=== (baseline)\n')
 PSA <- runallfuns(PSA)      #calculate
 ## checks
 PSA[,summary(progn)]
@@ -331,6 +352,7 @@ PSA[DST!='RS',pRSATT:=0.0]  #no RR coprev treated as RS, ie rrCDR=1 NOTE
 PSA[,PTcov:=0.0]
 
 ## === PT to <5/HIV
+cat('=== PT to <5/HIV\n')
 PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
 ## --- (INH)
 setPTeff(PSA,regimen='INH') # set PT efficacy
@@ -339,6 +361,7 @@ PSA <- runallfuns(PSA)      #calculate
 TI1H <- resultnoHIV(PSA)
 TI1H[,intervention:='PT to <5/HIV+']; TI1H[,`PT regimen`:='INH'];
 ## === PT to <15
+cat('=== PT to <15\n')
 PSA[,PTcov:=1]                         #set coverages
 ## --- (INH)
 setCosts(PSA,intervention='PT to <15',regimen="INH")
@@ -347,6 +370,7 @@ PSA <- runallfuns(PSA)
 TI2H <- resultnoHIV(PSA)
 TI2H[,intervention:='PT to <15'];TI2H[,`PT regimen`:='INH'];
 ## === PT to <5/HIV/TST
+cat('=== PT to <5/HIV/TST\n')
 PSA[,PTcov:=0.0]
 PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
 PSA[acat=='[5,15)' & hiv==0, PTcov:=ltbi.prev] # all & only those with LTBI among >5/H+
@@ -356,8 +380,8 @@ setCosts(PSA,intervention='PT to <5/HIV+/TST+',regimen="INH")
 PSA <- runallfuns(PSA)
 TI3H <- resultnoHIV(PSA)
 TI3H[,intervention:='PT to <5/HIV+/TST+'];TI3H[,`PT regimen`:='INH'];
-cat('Data made!\n')
-
+cat('------------- Data made! -----------\n')
+cat('saving out...\n')
 
 ## ## TIDY AND SAVE
 ## rm(PSA)
@@ -413,3 +437,4 @@ IVT <- merge(IVT,TI0H[,..tojoin],
 
 
 save(IVT,file=here('data/IVT.Rdata')) # NOTE this is biggish
+cat('...done.\n')
