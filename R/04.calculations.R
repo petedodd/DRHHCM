@@ -83,12 +83,13 @@ setPTeff <- function(D, #data
     }
 }
 
-
-
 ## set costs (by side-effect)
 ## NOTE some costs don't depend on args, so inefficient. But no harm done
 setCosts <- function(D, #data
-                     intervention=c('No HHCM','HHCM, no PT','PT to <5/HIV+/TST+','PT to <5/HIV+','PT to <15'),
+                     intervention=c('No HHCM',
+                                    'HHCM, no PT',
+                                    'PT to <5/HIV+/TST+',
+                                    'PT to <5/HIV+','PT to <15'),
                      regimen=c('INH','FQ','BDQ'), #efficacy only
                      rgc="BDQ"){   #if BDQ eff, is it BDQ or DLM costs? if FQ is it MXF or LVX?
 
@@ -104,19 +105,26 @@ setCosts <- function(D, #data
   ## costs of treatment of prevalent TB: note OPD visit not included
   D[,c_rsatt:= c_hiv_test + c_dstb_tx] #HIV test + ATT, not age dept
   D[,c_rratt:= c_hiv_test +
-       ifelse(acat=='[0,5)',c_mdrtb_tx.04,c_mdrtb_tx.514)] #HIV test + MDR ATT
+       ifelse(acat=='[0,5)',
+              c_mdrtb_tx1.04,
+              c_mdrtb_tx1.514)] #HIV test + MDR ATT
 
   ## costs of treatment for incident TB (+/- PT): treatment, but also dx
   ## assumes future presumptive TB proportional to how much TB there is
   ## NOTE: incremental vs total costs & careful reporting
   D[,c_dxrsatt:=c_rsatt +
-       (c_cxr_exam+c_opd_visit) + ifelse(acat=='[0,5)',
-                                         c_xpert_test.04,
-                                         c_xpert_test.514)]
-  D[,c_dxrratt:=c_rratt +
-       (c_cxr_exam+c_opd_visit) + ifelse(acat=='[0,5)',
-                                         c_xpert_test.04,
-                                         c_xpert_test.514)]
+       (c_cxr_exam+c_opd_visit) +
+       ifelse(acat=='[0,5)',
+              c_xpert_test.04,
+              c_xpert_test.514)]
+
+  D[,c_dxrratt:= ifelse(acat=='[0,5)',
+                        c_mdrtb_tx1.04,
+                        c_mdrtb_tx1.514)+
+       (c_cxr_exam+c_opd_visit) +
+       ifelse(acat=='[0,5)',
+              c_xpert_test.04,
+              c_xpert_test.514)]
 
   ## PT screen costs (depends strategy)
   D[,c_ptscreen:=0] #applies to 2 No PT options & 'PT to <15' where no screening needed
