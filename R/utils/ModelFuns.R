@@ -179,6 +179,7 @@ addVariables <- function(D){
   ## for costing: AEs & symptoms
   D[,fracSymptomatic:=PZ$fracSymptomatic$r(nrow(D))]
   D[,fracAE:=PZ$fracAE$r(nrow(D))]
+  D[,fracSAE:=PZ$fracSAE$r(nrow(D))]
 }
 
 

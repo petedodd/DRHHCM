@@ -25,7 +25,7 @@ PSA[is.na(hinc),unique(iso3)] #a few missing
 PSA[is.na(hinc),hinc:=FALSE]  #not high-income by hand
 
 ## read in cost data
-C0 <- fread(here('indata/Country_unit_costs2.csv'))
+C0 <- fread(here('indata/Country_unit_costs.csv'))
 C2 <- MakeCostData(C0[,.(iso3,unit_cost,cost.m,cost.sd)],max(PSA$repn))
 C2 <- dcast(C2,iso3+repn~unit_cost,value.var = 'value')
 (miss <- setdiff(PSA$iso3,C2$iso3)) #missing iso3 in cost data
@@ -130,31 +130,44 @@ setCosts <- function(D, #data
   ## PT costs: NB PTcov is applied by onward computation
   D[,c_pt:=0.0] #for safety & no PT
   if(regimen=='INH'){
-    D[,c_pt:=c_tpt_fu + c_aes_INH * fracAE + c_monit_INH +
+    D[,c_pt:=c_tpt_fu  + c_monit_INH +
+         c_aes_INH * fracAE + c_saes_INH * fracSAE +
          ifelse(acat=='[0,5)',
                 c_tpt_INH.04,
                 c_tpt_INH.514)
       ]
   }
   if(regimen=='FQ' & rgc=='MXF'){
-    D[,c_pt:=c_tpt_fu + c_aes_FQ * fracAE + c_monit_FQ +
+    D[,c_pt:=c_tpt_fu +  c_monit_FQ +
+         c_aes_FQ * fracAE + c_saes_FQ * fracSAE +
          ifelse(acat=='[0,5)',
                 c_tpt_MXF.04,
                 c_tpt_MXF.514)
       ]
   }
   if(regimen=='FQ' & rgc=='LVX'){
-    D[,c_pt:=c_tpt_fu + c_aes_FQ * fracAE + c_monit_FQ +
+    D[,c_pt:=c_tpt_fu + c_monit_FQ +
+         c_aes_FQ * fracAE + c_saes_FQ * fracSAE +
          ifelse(acat=='[0,5)',
                 c_tpt_LVX.04,
                 c_tpt_LVX.514)
       ]
   }
   if(regimen=='BDQ' & rgc=='BDQ'){
-    D[,c_pt:=c_tpt_fu + c_aes_BDQ * fracAE + c_monit_BDQ + c_tpt_BDQ]
+    D[,c_pt:=c_tpt_fu + c_monit_BDQ +
+         c_aes_BDQ * fracAE + c_saes_BDQ * fracSAE +
+         ifelse(acat=='[0,5)',
+                c_tpt_BDQ.04,
+                c_tpt_BDQ.514)
+      ]
   }
   if(regimen=='BDQ' & rgc=='DLM'){
-    D[,c_pt:=c_tpt_fu + c_aes_BDQ * fracAE + c_monit_BDQ + c_tpt_DLM]
+    D[,c_pt:=c_tpt_fu + c_monit_BDQ +
+         c_aes_BDQ * fracAE + c_saes_BDQ * fracSAE +
+         ifelse(acat=='[0,5)',
+                c_tpt_DLM.04,
+                c_tpt_DLM.514)
+      ]
   }
 
 }
