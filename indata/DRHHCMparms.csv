@@ -26,5 +26,5 @@ concord,"B(57.40241,12.09203)",concordance in DR type,Chiang 2020,0.829 (0.797 -
 prog04,"B(5.152793,21.96717)",LTBI+ progression u5,Martinez et al 2018,0.182 (0.136 - 0.236),Y,,,,,,,
 prog514,"B(4.151282,43.02238)",LTBI+ progression u5,Martinez et al 2018,0.082 (0.058 - 0.112),Y,,,,,,,358
 fracSymptomatic,"B(2.936,11.744)",Fraction of contacts presumptive TB,Martinez 2017 & Sayedi 2020,0.186 (0.124 - 0.262),Y,,,,,,,
-fracAE,"B(30,358)",Fraction of PT with G2 AEs,Malik 2020 & Seddon 2013,,,,,,,,,
+fracAE,"B(31,358)",Fraction of PT with G2 AEs,Malik 2020 & Seddon 2013,,,,,,,,,
 fracSAE,"B(6,358)",Fraction of PT with G3/4 AEs,Malik 2020 & Seddon 2013,,,,,,,,,
