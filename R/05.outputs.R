@@ -164,7 +164,13 @@ BMR$intervention <- factor(BMR$intervention,
                                     "PT to <15"),
                            ordered = TRUE)
 BMR <- BMR[!is.na(intervention)]    #NOTE this is to drop the no PT
-
+BMR[,intervention2:=gsub('PT','TPT',intervention)]
+BMR$intervention2 <- factor(BMR$intervention2,
+                           levels=c("TPT to <5/HIV+",
+                                    "TPT to <5/HIV+/TST+",
+                                    "TPT to <15"),
+                           ordered = TRUE)
+BMR$`PT regimen` <- factor(BMR$`PT regimen`,levels=c('FQ','BDQ/DLM'),ordered = TRUE)
 
 ## === data for FQR figures
 ## NNT vs prop RR that are FQR (by country)
@@ -257,15 +263,17 @@ tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
 ## FIGURES
 ## =================================
 cat("==== doing FIGURES =======\n")
+colz2 <- c('BDQ/DLM'="#E69F00",'FQ'="#000000")
 
 ## === figure_NN
-GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
+GP <- ggplot(BMR,aes(intervention2,value,fill=`PT regimen`)) +
   geom_bar(stat='identity',position='dodge') +
   facet_grid(variable ~ quantity ,scales='free') +
-  scale_fill_colorblind(name='TPT regimen')+
+  scale_fill_manual(values=colz2,name='TPT regimen')+
   xlab('Intervention')+
   ylab('Additional resource (row) per quantity averted (column)') +
   pnlth
+## GP
 
 ggsave(GP,file=here('output/figure_NN.eps'),w=6,h=7)
 ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
@@ -299,7 +307,6 @@ GPd <- ggplot(tmp,
 
 ggsave(GPd,file=here('output/figure.labelled.FQRscatter.pdf'),w=18,h=15)
 
-colz2 <- c('BDQ/DLM'="#E69F00",'FQ'="#000000")
 ## -- panel a
 ## plot
 GPa <- ggplot(tmp,
