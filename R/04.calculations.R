@@ -67,16 +67,16 @@ addVariables(PSA)                #NOTE return by side-effect
 ## strategy x regimen
 setPTeff <- function(D, #data
                      regimen=c('INH','FQ','BDQ'), #representative regimen for PT eff
-                     tst="all"                   #TST strategy
+                     tst="all"                    #TST strategy
                      ){
     ## --- efficacies
     ## RR1 is the sampled efficacy in TST+, RR0 in all TST
     D[,RR:=1.0]                               #null effect
-    D[DST=='RS',RR:=RR0]  #base IPT efficacy, no efficacy for in RR NOTE lumping HR and in here
+    D[DST=='RS',RR:=RR0]  #base PT efficacy, no efficacy for in RR-Mtb NOTE lumping HR and in here
     if(regimen != 'INH') D[DST=='FS',RR:=RR0] #efficacy
     if(regimen=='BDQ') D[DST=='FR',RR:=RR0]   #efficacy
     if(tst!='all'){    #switching to efficacy in TST+ve
-        ## coverage to equal LTBI prevalence TODO not here? check HIV
+        ## NOTE set coverage to equal LTBI prevalence in intervention defn below
         D[DST=='RS' & hiv==0 & acat=='[5,15)',RR:=RR1]
         if(regimen != 'INH') D[DST=='FS' & hiv==0 & acat=='[5,15)',RR:=RR1]
         if(regimen=='BDQ') D[DST=='FR' & hiv==0 & acat=='[5,15)',RR:=RR1]

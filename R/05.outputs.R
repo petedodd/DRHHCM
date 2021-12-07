@@ -258,6 +258,48 @@ CEC$iso3 <- factor(CEC$iso3,levels=lvls,ordered = TRUE)
 tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
 
 
+## --- all RS version for comparison
+TIV <- IVT[,.(deaths=sum((deaths-deaths0)),
+             incdeaths=sum((incdeaths-incdeaths0)),
+             inctb=sum((inctb-inctb0)),
+             rsatt=sum((rsatt-rsatt0)),
+             rratt=sum((rratt-rratt0)),
+             ptc=sum((ptc-ptc0)),hhc=sum(hhc)),
+          by = .(repn,intervention,`PT regimen`)]
+
+tivi <- TIV[,.(rsatt=mean(rsatt/abs(inctb)),
+              rratt=mean(rratt/abs(inctb)),
+              ptc=mean(ptc/abs(inctb)),
+              hhc=mean(hhc/abs(inctb))),
+           by=.(intervention,`PT regimen`)]
+tivd <- TIV[,.(rsatt=mean(rsatt/abs(deaths)),
+              rratt=mean(rratt/abs(deaths)),
+              ptc=mean(ptc/abs(deaths)),
+              hhc=mean(hhc/abs(deaths))),
+           by=.(intervention,`PT regimen`)]
+tivi[,quantity:='per TB case averted']
+tivd[,quantity:='per TB death averted']
+
+TB <- rbind(tivi,tivd)
+TM <- melt(TB,id=c('intervention','PT regimen','quantity'))
+TMR <- TM[variable %in% c('ptc','hhc') &
+          quantity %in% c('per TB case averted','per TB death averted')]
+TMR[grepl('death',quantity),quantity:='Death']
+TMR[grepl('case',quantity),quantity:='Incident TB']
+TMR[grepl('ptc',variable),variable:='Preventive therapy courses']
+TMR[grepl('hhc',variable),variable:='Household contacts screened']
+TMR$intervention <- factor(TMR$intervention,
+                           levels=c("PT to <5/HIV+",
+                                    "PT to <5/HIV+/TST+",
+                                    "PT to <15"),
+                           ordered = TRUE)
+
+## benchmarks/checks
+IVT[,.(inCFR=1e2*sum(incdeaths)/sum(inctb), # ~ 15%
+       inCDR=1e2*sum(rsatti)/sum(inctb),    # ~ 56%
+       hhinc=1e2*sum(inctb)/sum(hhc),       # ~ 2.5%
+       hhdeaths=1e2*sum(deaths)/sum(hhc))]  # ~ 0.5%
+
 
 ## =================================
 ## FIGURES
@@ -277,6 +319,19 @@ GP <- ggplot(BMR,aes(intervention2,value,fill=`PT regimen`)) +
 
 ggsave(GP,file=here('output/figure_NN.eps'),w=6,h=7)
 ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
+
+
+## --- all RS version
+GP <- ggplot(TMR,aes(intervention,value)) +
+  geom_bar(stat='identity',position='dodge') +
+  facet_grid(variable ~ quantity ,scales='free') +
+  xlab('Intervention')+
+  ylab('Additional resource (row) per quantity averted (column)') +
+  pnlth
+## GP
+
+ggsave(GP,file=here('output/Sfigure_NNRS.png'),w=6,h=7)
+
 
 ## === figure_FQR
 ## checking countries etc
