@@ -262,7 +262,7 @@ cat("==== doing FIGURES =======\n")
 GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
   geom_bar(stat='identity',position='dodge') +
   facet_grid(variable ~ quantity ,scales='free') +
-  scale_fill_colorblind()+
+  scale_fill_colorblind(name='TPT regimen')+
   xlab('Intervention')+
   ylab('Additional resource (row) per quantity averted (column)') +
   pnlth
@@ -279,6 +279,7 @@ tmp[,region:=g_whoregion]
 tmp <- merge(tmp,WB[,.(iso3,hic=(income=='High income'))],by='iso3')
 tmp <- tmp[hic!=TRUE] #strip out high income countries
 tmp <- tmp[ptc>0]     #the zeros are pacific islands with 0 across the board
+tmp[`PT regimen`!='FQ',`PT regimen`:='BDQ/DLM']
 
 ## face validity checks
 GPd <- ggplot(tmp,
@@ -298,6 +299,7 @@ GPd <- ggplot(tmp,
 
 ggsave(GPd,file=here('output/figure.labelled.FQRscatter.pdf'),w=18,h=15)
 
+colz2 <- c('BDQ/DLM'="#E69F00",'FQ'="#000000")
 ## -- panel a
 ## plot
 GPa <- ggplot(tmp,
@@ -305,7 +307,7 @@ GPa <- ggplot(tmp,
   geom_point() +
   scale_x_continuous(label=percent) +
   guides(shape='none')+
-  scale_color_colorblind(position='top')+ #not sure why not working
+  scale_color_manual(values=colz2,name='TPT regimen')+
   xlab('Proportion of RR/MDR in children that is FQR')+
   ylab('PT courses to prevent a TB case')+
   geom_smooth(method='lm')+
@@ -318,7 +320,7 @@ GPa <- ggplot(tmp,
 
 ## reshape & aggregate
 tmp2 <- dcast(tmp,iso3+g_whoregion ~ `PT regimen`,value.var = 'ptc')
-tmp2[,df:=FQ-BDQ]
+tmp2[,df:=FQ-`BDQ/DLM`]
 tmp2 <- tmp2[,.(df=median(df,na.rm=TRUE)),by=.(g_whoregion)]
 tmp2 <- tmp2[order(as.character(g_whoregion))]
 tmp2[,region:=g_whoregion]
@@ -354,23 +356,27 @@ tmp[,c('intervention','PT regimen'):=NA]
 CECR$iso3 <- factor(CECR$iso3,levels=lvls,ordered = TRUE)
 tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
 CECR$`PT regimen` <- factor(CECR$`PT regimen`,
-                            levels=rev(c('DLM','LVX','none')))
+                            levels=c('none','LVX','DLM'))
+CECR[,intervention2:=gsub('PT','TPT',intervention)]
+tmp[,intervention2:=gsub('PT','TPT',intervention)]
 
-colz <- c('DLM'="#56B4E9",'LVX'="#E69F00",'none'="#000000")
+colz <- c('none'="#56B4E9",'LVX'="#000000",'DLM'="#E69F00")
+shpz <- c("HHCM, no TPT"=1,"TPT to <5/HIV+/TST+"=2,"TPT to <5/HIV+"=3,"TPT to <15"=4)
+shps <- c("HHCM, no PT"=1,"PT to <5/HIV+/TST+"=2,"PT to <5/HIV+"=3,"PT to <15"=4)
 
 
 ## make plot
 tp <- 5e3
 GP <- ggplot(CECR,
              aes(iso3,cpda,
-                 shape=intervention,
+                 shape=intervention2,
                  group=iso3,
                  col=`PT regimen`))+
   geom_line(data=tmp,aes(x=iso3,y=gdp/1,group=1),col='darkgrey')+
   geom_line(data=tmp,aes(x=iso3,y=gdp/2,group=1),lty=2,col='darkgrey')+
   geom_point(size=3) +
-  scale_shape(solid=FALSE)+
-  scale_color_manual(values=colz)+
+  scale_shape_manual(values=shpz,name='Intervention')+
+  scale_color_manual(values=colz,name='TPT regimen')+
   annotate(geom='text',y=tp*0.8,x=19,label='1.0xGDP')+
   annotate(geom='text',y=tp*0.8,x=25,label='0.5xGDP')+
   coord_flip()+
@@ -421,6 +427,8 @@ GP <- ggplot(CEC[cpda>0 & iso3 %in% unique(tmp$iso3)],
   annotate(geom='text',y=tp*0.8,x=120,label='0.5xGDP')+
   annotate(geom='text',y=tp*0.8,x=140,label='0.2xGDP')+
   coord_flip()+
+  scale_shape_manual(values=shps,name='Intervention')+
+  scale_color_manual(values=colz,name='TPT regimen')+
   scale_y_continuous(label=absspace,limits=c(0,tp))+
   xlab('Country ISO3 code')+
   ylab('Cost per 3%-discounted DALY averted (USD)')+
