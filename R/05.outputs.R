@@ -744,11 +744,3 @@ if(FALSE){
 
 }
 
-
-## temporary below here to be reworked into Appendix results:
-## RR split to outcomes
-## all country plot
-## RS analog
-
-
-

@@ -106,8 +106,8 @@ setCosts <- function(D, #data
   D[,c_rsatt:= c_hiv_test + c_dstb_tx] #HIV test + ATT, not age dept
   D[,c_rratt:= c_hiv_test +
        ifelse(acat=='[0,5)',
-              c_mdrtb_tx1.04,
-              c_mdrtb_tx1.514)] #HIV test + MDR ATT
+              c_mdrtb_tx1.04*FQR + c_mdrtb_tx2.04*(1-FQR),
+              c_mdrtb_tx1.514*FQR + c_mdrtb_tx2.514*(1-FQR))] #HIV test + MDR ATT
 
   ## costs of treatment for incident TB (+/- PT): treatment, but also dx
   ## assumes future presumptive TB proportional to how much TB there is
@@ -119,8 +119,8 @@ setCosts <- function(D, #data
               c_xpert_test.514)]
 
   D[,c_dxrratt:= ifelse(acat=='[0,5)',
-                        c_mdrtb_tx1.04,
-                        c_mdrtb_tx1.514)+
+                        c_mdrtb_tx1.04*FQR + c_mdrtb_tx2.04*(1-FQR),
+                        c_mdrtb_tx1.514*FQR + c_mdrtb_tx2.514*(1-FQR))+
        (c_cxr_exam+c_opd_visit) +
        ifelse(acat=='[0,5)',
               c_xpert_test.04,
