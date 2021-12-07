@@ -167,16 +167,15 @@ BMR <- BMR[!is.na(intervention)]    #NOTE this is to drop the no PT
 
 
 ## === data for FQR figures
-
 ## NNT vs prop RR that are FQR (by country)
 IVC <- IV[,.(deaths=sum((deaths-deaths0)),inctb=sum((inctb-inctb0)),
              rsatt=sum((rsatt-rsatt0)),rratt=sum((rratt-rratt0)),
              ptc=sum((ptc-ptc0))),
           by = .(repn,iso3,intervention,`PT regimen`)]
-
-ICM1 <- IVC[,.(ptc=mean(ptc/abs(inctb))),
+## per qty with safety for 0
+ICM1 <- IVC[,.(ptc=mean(ptc/(abs(inctb)+1e-10))),
             by=.(iso3,intervention,`PT regimen`)]
-ICM2 <- IVC[,.(ptc=mean(ptc/abs(deaths))),
+ICM2 <- IVC[,.(ptc=mean(ptc/(abs(deaths)+1e-10))),
             by=.(iso3,intervention,`PT regimen`)]
 
 ## FQR data
@@ -185,14 +184,6 @@ ICM2 <- merge(ICM2,DX,by='iso3',all.x=TRUE)
 ## whoregion
 ICM1 <- merge(ICM1,WK,by='iso3',all.x=TRUE)
 ICM2 <- merge(ICM2,WK,by='iso3',all.x=TRUE)
-
-## TODO fix
-ICM1[!is.finite(ptc)]
-ICM2[!is.finite(ptc)]
-
-
-ICM1 <- ICM1[is.finite(ptc)]
-ICM2 <- ICM2[is.finite(ptc)]
 
 ## === compile CE results (needed for CE plot and tables)
 ## NOTE check
@@ -268,9 +259,6 @@ tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
 cat("==== doing FIGURES =======\n")
 
 ## === figure_NN
-
-## TODO fine tune format
-
 GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
   geom_bar(stat='identity',position='dodge') +
   facet_grid(variable ~ quantity ,scales='free') +
@@ -290,6 +278,7 @@ tmp[`PT regimen`!='FQ',lbl:=NA]
 tmp[,region:=g_whoregion]
 tmp <- merge(tmp,WB[,.(iso3,hic=(income=='High income'))],by='iso3')
 tmp <- tmp[hic!=TRUE] #strip out high income countries
+tmp <- tmp[ptc>0]     #the zeros are pacific islands with 0 across the board
 
 ## face validity checks
 GPd <- ggplot(tmp,
@@ -328,16 +317,16 @@ GPa <- ggplot(tmp,
 ## -- panel b
 
 ## reshape & aggregate
-tmp <- dcast(tmp,iso3+g_whoregion ~ `PT regimen`,value.var = 'ptc')
-tmp[,df:=FQ-BDQ]
-tmp <- tmp[,.(df=median(df,na.rm=TRUE)),by=.(g_whoregion)]
-tmp <- tmp[order(as.character(g_whoregion))]
-tmp[,region:=g_whoregion]
-tmp$region <- factor(tmp$region,levels=unique(tmp$region),
+tmp2 <- dcast(tmp,iso3+g_whoregion ~ `PT regimen`,value.var = 'ptc')
+tmp2[,df:=FQ-BDQ]
+tmp2 <- tmp2[,.(df=median(df,na.rm=TRUE)),by=.(g_whoregion)]
+tmp2 <- tmp2[order(as.character(g_whoregion))]
+tmp2[,region:=g_whoregion]
+tmp2$region <- factor(tmp2$region,levels=unique(tmp2$region),
                       ordered=TRUE)
 
 ## plot
-GPb <- ggplot(tmp,aes(region,df)) +
+GPb <- ggplot(tmp2,aes(region,df)) +
     geom_bar(stat='identity') +
     xlab('Region') +
     ylab('Median difference in PT courses per case prevented')+
@@ -379,7 +368,7 @@ GP <- ggplot(CECR,
                  col=`PT regimen`))+
   geom_line(data=tmp,aes(x=iso3,y=gdp/1,group=1),col='darkgrey')+
   geom_line(data=tmp,aes(x=iso3,y=gdp/2,group=1),lty=2,col='darkgrey')+
-  geom_point(size=3,lwd=4) +
+  geom_point(size=3) +
   scale_shape(solid=FALSE)+
   scale_color_manual(values=colz)+
   annotate(geom='text',y=tp*0.8,x=19,label='1.0xGDP')+
@@ -391,6 +380,7 @@ GP <- ggplot(CECR,
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.8,0.2))
 
+## NOTE seems to want to be run interactively?
 ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)
 ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
 
