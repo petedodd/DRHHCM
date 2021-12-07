@@ -85,6 +85,9 @@ pnlth <- theme(
 ## DATA
 ## =================================
 
+cat("==== DATA preparation =======\n")
+
+
 ## load or create LYs
 source(here('R/utils/makeLYs.R'))
 LY <- LYD[dr==3] #choosing discount rate
@@ -101,6 +104,14 @@ load(here('indata/GDP.Rdata'))
 WK <- fread(here('indata/TB_notifications_2020-10-15.csv'))
 WK <- unique(WK[,.(iso3,g_whoregion)])  #key!
 load(here('indata/HBC.Rdata'))          #HBC lists
+WB <- fread(here('indata/WBIL.csv'))    #income
+
+## safety
+(bad <- IV[!is.finite(cost),unique(iso3)])
+(badb <- IVb[!is.finite(cost),unique(iso3)])
+IV <- IV[!iso3 %in% bad]
+IVb <- IVb[!iso3 %in% badb]
+
 
 ## =================================
 ## DATA WORK
@@ -109,7 +120,8 @@ load(here('indata/HBC.Rdata'))          #HBC lists
 ## === rename FQR
 DX <- FRF[,.(prop=mean(fqr)),by=iso3]
 
-## === data for NNS plot
+## === data for NNS plot (with safety for FSM)
+
 IVD <- IV[,.(deaths=sum((deaths-deaths0)),
              incdeaths=sum((incdeaths-incdeaths0)),
              inctb=sum((inctb-inctb0)),
@@ -135,9 +147,8 @@ midd[,quantity:='per TB death averted']
 
 B <- rbind(midi,midd)
 BM <- melt(B,id=c('intervention','PT regimen','quantity'))
-BM
-
-BM[variable=='ptc' & `PT regimen`=='FQ'] #right pattern
+## BM
+## BM[variable=='ptc' & `PT regimen`=='FQ'] #right pattern
 
 
 BMR <- BM[variable %in% c('ptc','hhc') &
@@ -152,8 +163,7 @@ BMR$intervention <- factor(BMR$intervention,
                                     "PT to <5/HIV+/TST+",
                                     "PT to <15"),
                            ordered = TRUE)
-
-BMR <- BMR[!is.na(intervention)]        #TODO check
+BMR <- BMR[!is.na(intervention)]    #NOTE this is to drop the no PT
 
 
 ## === data for FQR figures
@@ -169,23 +179,20 @@ ICM1 <- IVC[,.(ptc=mean(ptc/abs(inctb))),
 ICM2 <- IVC[,.(ptc=mean(ptc/abs(deaths))),
             by=.(iso3,intervention,`PT regimen`)]
 
+## FQR data
 ICM1 <- merge(ICM1,DX,by='iso3',all.x=TRUE)
 ICM2 <- merge(ICM2,DX,by='iso3',all.x=TRUE)
-
-## fill in NAs by region TODO check
+## whoregion
 ICM1 <- merge(ICM1,WK,by='iso3',all.x=TRUE)
 ICM2 <- merge(ICM2,WK,by='iso3',all.x=TRUE)
 
-ICM1[,c('ptc.av','prop.av'):=.(fmean(ptc),fmean(prop)),by=.(g_whoregion,intervention,`PT regimen`)]
-ICM2[,c('ptc.av','prop.av'):=.(fmean(ptc),fmean(prop)),by=.(g_whoregion,intervention,`PT regimen`)]
-
-ICM1[!is.finite(ptc),ptc:=ptc.av]; ICM2[!is.finite(ptc),ptc:=ptc.av]
-ICM1[!is.finite(prop),prop:=prop.av]; ICM2[!is.finite(prop),prop:=prop.av];
-
-ICM1[,c('ptc.av','prop.av'):=NULL]
-ICM2[,c('ptc.av','prop.av'):=NULL]
+## TODO fix
+ICM1[!is.finite(ptc)]
+ICM2[!is.finite(ptc)]
 
 
+ICM1 <- ICM1[is.finite(ptc)]
+ICM2 <- ICM2[is.finite(ptc)]
 
 ## === compile CE results (needed for CE plot and tables)
 ## NOTE check
@@ -207,24 +214,17 @@ IVb[,c('lys0','lys1'):=.(lys*deaths0,lys*deaths)]
 IVT <- merge(IVT,LY,by=c('iso3','acat'))
 IVT[,c('lys0','lys1'):=.(lys*deaths0,lys*deaths)]
 
-## TODO include no PT strategy
 ## regional global numbers
 IV <- merge(IV,WK,by='iso3',all.x = TRUE)
 IVb <- merge(IVb,WK,by='iso3',all.x = TRUE)
 
-## by country
-IVc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
-          by = .(repn,iso3,intervention,`PT regimen`)]
-IVc <- IVc[,.(deaths=mean(deaths),cost=mean(cost),lys=mean(lys)),
-           by = .(iso3,intervention,`PT regimen`)]
-IVc0 <- IV[,.(deaths=sum(deaths0),cost=sum(cost0),lys=sum(lys0)),
-           by = .(repn,iso3,intervention,`PT regimen`)]
-IVc0 <- IVc0[,.(deaths0=mean(deaths),cost0=mean(cost),lys0=mean(lys)),
-             by = .(iso3,intervention,`PT regimen`)]
-
+## restrict to LVX/DLM for CEACs
+IVE <- rbind(IV,IVb)
+IVE <- IVE[!`PT regimen` %in% c('MXF','BDQ')]
+IVE[`PT regimen`=='FQ',`PT regimen`:='LVX']
 
 ## data for CEACs
-EAC <- IV[iso3 %in% HBC[g.hbmdr==1,iso3]]
+EAC <- IVE[iso3 %in% HBC[g.hbmdr==1,iso3]]
 EAC <- EAC[,.(dDALYs=sum(lys-lys0),dcost=sum(cost-cost0)),
            by=.(iso3,`PT regimen`,intervention,repn)]
 threshold <- seq(from=0,to=5e3,by=100)
@@ -237,15 +237,38 @@ for(th in threshold){
 }
 CEAC <- rbindlist(CEAC)
 
+## --- data for CE plot
+
+## by country
+IVc <- IVE[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
+          by = .(repn,iso3,intervention,`PT regimen`)]
+IVc <- IVc[,.(deaths=mean(deaths),cost=mean(cost),lys=mean(lys)),
+           by = .(iso3,intervention,`PT regimen`)]
+IVc0 <- IVE[,.(deaths=sum(deaths0),cost=sum(cost0),lys=sum(lys0)),
+           by = .(repn,iso3,intervention,`PT regimen`)]
+IVc0 <- IVc0[,.(deaths0=mean(deaths),cost0=mean(cost),lys0=mean(lys)),
+             by = .(iso3,intervention,`PT regimen`)]
+
+CEC <- merge(IVc,IVc0)
+CEC <- merge(CEC,GDP,by='iso3',all.x=TRUE,all.y = FALSE)
+CEC[,cpda:=(cost-cost0)/(lys0-lys+1e-6)]
+
+tmp <- unique(CEC[!is.na(gdp),.(gdp,iso3)])
+lvls <- tmp[order(gdp),iso3]
+tmp[,c('intervention','PT regimen'):=NA]
+
+CEC$iso3 <- factor(CEC$iso3,levels=lvls,ordered = TRUE)
+tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
+
 
 
 ## =================================
 ## FIGURES
 ## =================================
+cat("==== doing FIGURES =======\n")
 
 ## === figure_NN
 
-## TODO check regimen
 ## TODO fine tune format
 
 GP <- ggplot(BMR,aes(intervention,value,fill=`PT regimen`)) +
@@ -260,14 +283,13 @@ ggsave(GP,file=here('output/figure_NN.eps'),w=6,h=7)
 ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
 
 ## === figure_FQR
-
-## -- panel a
-
 ## checking countries etc
 tmp <- ICM1[`PT regimen`!='INH' & intervention=='PT to <15']
 tmp[,lbl:=as.character(iso3)]
 tmp[`PT regimen`!='FQ',lbl:=NA]
 tmp[,region:=g_whoregion]
+tmp <- merge(tmp,WB[,.(iso3,hic=(income=='High income'))],by='iso3')
+tmp <- tmp[hic!=TRUE] #strip out high income countries
 
 ## face validity checks
 GPd <- ggplot(tmp,
@@ -287,7 +309,7 @@ GPd <- ggplot(tmp,
 
 ggsave(GPd,file=here('output/figure.labelled.FQRscatter.pdf'),w=18,h=15)
 
-
+## -- panel a
 ## plot
 GPa <- ggplot(tmp,
               aes(prop,ptc,col=`PT regimen`,shape=intervention)) +
@@ -330,21 +352,6 @@ ggsave(GPB,file=here('output/figure_FQR.png'),w=12,h=5)
 
 
 ## === figure_CE
-
-## data for CE plot
-CEC <- merge(IVc,IVc0)
-CEC <- merge(CEC,GDP,by='iso3',all.x=TRUE,all.y = FALSE)
-CEC[,cpda:=(cost-cost0)/(lys0-lys+1e-6)]
-
-tmp <- unique(CEC[!is.na(gdp),.(gdp,iso3)])
-lvls <- tmp[order(gdp),iso3]
-tmp[,c('intervention','PT regimen'):=NA]
-
-CEC$iso3 <- factor(CEC$iso3,levels=lvls,ordered = TRUE)
-tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
-
-## TODO swtich to LVX, DLM?
-
 ## restrict to hbmdr
 CECR <- CEC[cpda>0 & iso3 %in% unique(tmp$iso3)]
 CECR <- CECR[iso3 %in% HBC[g.hbmdr==1,iso3]]
@@ -358,10 +365,10 @@ tmp[,c('intervention','PT regimen'):=NA]
 CECR$iso3 <- factor(CECR$iso3,levels=lvls,ordered = TRUE)
 tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
 CECR$`PT regimen` <- factor(CECR$`PT regimen`,
-                            levels=rev(c('BDQ','FQ','none')))
+                            levels=rev(c('DLM','LVX','none')))
 
-colz <- c('BDQ'="#56B4E9",'FQ'="#E69F00",'none'="#000000")
-## c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+colz <- c('DLM'="#56B4E9",'LVX'="#E69F00",'none'="#000000")
+
 
 ## make plot
 tp <- 5e3
@@ -372,7 +379,7 @@ GP <- ggplot(CECR,
                  col=`PT regimen`))+
   geom_line(data=tmp,aes(x=iso3,y=gdp/1,group=1),col='darkgrey')+
   geom_line(data=tmp,aes(x=iso3,y=gdp/2,group=1),lty=2,col='darkgrey')+
-  geom_point(size=3,lwd=3) +
+  geom_point(size=3,lwd=4) +
   scale_shape(solid=FALSE)+
   scale_color_manual(values=colz)+
   annotate(geom='text',y=tp*0.8,x=19,label='1.0xGDP')+
@@ -432,15 +439,16 @@ GP <- ggplot(CEC[cpda>0 & iso3 %in% unique(tmp$iso3)],
 
 ggsave(GP,file=here('output/Sfigure_CE.png'),w=20,h=25)
 
+
+cat("==== FIGURES done =======\n")
+
 ## =================================
 ## TABLES
 ## =================================
 
-## see TABLE2 & TABLE4 but modify
-
+cat("==== starting TABLES =======\n")
 
 ## === outcomes table
-
 IVS <- IV[,.(
   ## absolute
   deaths=sum(deaths),
@@ -713,12 +721,13 @@ Wo[,none:=tmp]
 nmz <- names(Wo)
 setcolorder(Wo,c('variable','none',nmz[2:14]))
 
-Wo
+## Wo
 
 
 fwrite(Wo,file=here('output/table_HE.csv'))
 ## =====================================================
 
+cat("==== TABLES done =======\n")
 
 ## =======================================
 ## LOADING TO GOOGLE SHEETS (authors only)
