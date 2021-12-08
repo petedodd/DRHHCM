@@ -1,0 +1,25 @@
+intervention,PT regimen,quantity,variable,value
+PT to <5/HIV+,FQ,Incident TB,Preventive therapy courses,29.7660749987142
+PT to <5/HIV+,BDQ/DLM,Incident TB,Preventive therapy courses,23.4032032464024
+PT to <15,FQ,Incident TB,Preventive therapy courses,34.9208265465936
+PT to <15,BDQ/DLM,Incident TB,Preventive therapy courses,27.5925255333948
+PT to <5/HIV+/TST+,FQ,Incident TB,Preventive therapy courses,29.5006268556648
+PT to <5/HIV+/TST+,BDQ/DLM,Incident TB,Preventive therapy courses,23.2765090648694
+PT to <5/HIV+,FQ,Death,Preventive therapy courses,24.8223573872267
+PT to <5/HIV+,BDQ/DLM,Death,Preventive therapy courses,22.8905808230711
+PT to <15,FQ,Death,Preventive therapy courses,46.16279307101
+PT to <15,BDQ/DLM,Death,Preventive therapy courses,42.103010834305
+PT to <5/HIV+/TST+,FQ,Death,Preventive therapy courses,35.8296153044939
+PT to <5/HIV+/TST+,BDQ/DLM,Death,Preventive therapy courses,32.7544278829962
+PT to <5/HIV+,FQ,Incident TB,Household contacts screened,64.1645035957087
+PT to <5/HIV+,BDQ/DLM,Incident TB,Household contacts screened,50.4496565301916
+PT to <15,FQ,Incident TB,Household contacts screened,37.8987164419585
+PT to <15,BDQ/DLM,Incident TB,Household contacts screened,29.9459621765816
+PT to <5/HIV+/TST+,FQ,Incident TB,Household contacts screened,41.8756502280707
+PT to <5/HIV+/TST+,BDQ/DLM,Incident TB,Household contacts screened,33.0432764179355
+PT to <5/HIV+,FQ,Death,Household contacts screened,53.5066622754581
+PT to <5/HIV+,BDQ/DLM,Death,Household contacts screened,49.3429721108422
+PT to <15,FQ,Death,Household contacts screened,50.0979215333372
+PT to <15,BDQ/DLM,Death,Household contacts screened,45.6924580361062
+PT to <5/HIV+/TST+,FQ,Death,Household contacts screened,50.8552802606698
+PT to <5/HIV+/TST+,BDQ/DLM,Death,Household contacts screened,46.4921513092101

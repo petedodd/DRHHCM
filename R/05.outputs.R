@@ -307,6 +307,10 @@ IVT[,.(inCFR=1e2*sum(incdeaths)/sum(inctb), # ~ 15%
 cat("==== doing FIGURES =======\n")
 colz2 <- c('BDQ/DLM'="#E69F00",'FQ'="#000000")
 
+## also save data
+fwrite(BMR[,.(intervention,`PT regimen`,quantity,variable,value)],
+       file=here('output/etable_NN.csv'))
+
 ## === figure_NN
 GP <- ggplot(BMR,aes(intervention2,value,fill=`PT regimen`)) +
   geom_bar(stat='identity',position='dodge') +
@@ -322,6 +326,11 @@ ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
 
 
 ## --- all RS version
+## also save data
+fwrite(TMR,
+       file=here('output/etable_RSNN.csv'))
+
+## graph
 GP <- ggplot(TMR,aes(intervention,value)) +
   geom_bar(stat='identity',position='dodge') +
   facet_grid(variable ~ quantity ,scales='free') +
@@ -370,8 +379,8 @@ GPa <- ggplot(tmp,
   scale_x_continuous(label=percent) +
   guides(shape='none')+
   scale_color_manual(values=colz2,name='TPT regimen')+
-  xlab('Proportion of RR/MDR in children that is FQR')+
-  ylab('PT courses to prevent a TB case')+
+  xlab('Proportion of RR/MDR-TB that is fluoroquinolone-resistant')+
+  ylab('TPT courses to prevent one occurrence of tuberculosis')+
   geom_smooth(method='lm')+
   expand_limits(y=0) +
   ggpubr::stat_cor(show.legend = FALSE)+
@@ -392,8 +401,8 @@ tmp2$region <- factor(tmp2$region,levels=unique(tmp2$region),
 ## plot
 GPb <- ggplot(tmp2,aes(region,df)) +
     geom_bar(stat='identity') +
-    xlab('Region') +
-    ylab('Median difference in PT courses per case prevented')+
+    xlab('WHO region') +
+  ylab('Median difference in TPT courses per\n occurrence of tuberculosis prevented')+
     theme_classic() + ggpubr::grids()
 ## GPb
 
@@ -423,8 +432,10 @@ CECR[,intervention2:=gsub('PT','TPT',intervention)]
 tmp[,intervention2:=gsub('PT','TPT',intervention)]
 
 colz <- c('none'="#56B4E9",'LVX'="#000000",'DLM'="#E69F00")
-shpz <- c("HHCM, no TPT"=1,"TPT to <5/HIV+/TST+"=2,"TPT to <5/HIV+"=3,"TPT to <15"=4)
-shps <- c("HHCM, no PT"=1,"PT to <5/HIV+/TST+"=2,"PT to <5/HIV+"=3,"PT to <15"=4)
+shpz <- c("HHCM, no TPT"=1,"TPT to <5/HIV+"=2,
+          "TPT to <5/HIV+/TST+"=3,"TPT to <15"=4)
+shps <- c("HHCM, no PT"=1,"PT to <5/HIV+"=2,
+          "PT to <5/HIV+/TST+"=3,"PT to <15"=4)
 
 
 ## make plot
@@ -447,6 +458,7 @@ GP <- ggplot(CECR,
   ylab('Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)')+
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.8,0.2))
+GP
 
 ## NOTE seems to want to be run interactively?
 ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)
