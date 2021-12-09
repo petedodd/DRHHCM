@@ -665,7 +665,7 @@ outcomes <- dcast(out,rtype  + variable ~
 fwrite(outcomes,file=here('output/table_outcomes.csv'))
 
 
-## === resources table - jj
+## === resources table
 rzn <- c('hhc','ptc','rsatt','rratt')
 rznl <- c('repn','intervention','PT regimen',rzn)
 
@@ -698,6 +698,16 @@ rez$`PT regimen` <- factor(rez$`PT regimen`,
 ## reshape
 resources <- dcast(rez,rtype + variable ~
                         intervention + `PT regimen`)
+
+## reorder cols
+resnames <- c("rtype","variable","No HHCM_none","HHCM, no PT_none",
+              "PT to <5/HIV+_FQ",
+              "PT to <5/HIV+_BDQ",
+              "PT to <5/HIV+/TST+_FQ",
+              "PT to <5/HIV+/TST+_BDQ",
+              "PT to <15_FQ",
+              "PT to <15_BDQ")
+setcolorder(resources,resnames)
 
 fwrite(resources,file=here('output/table_resources.csv'))
 
