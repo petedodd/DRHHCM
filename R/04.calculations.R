@@ -221,10 +221,6 @@ PSA[,CDR:=1.0]                  #all coprev detected
 PSA[,rrCDR:=1.0]                #all coprev detected
 PSA[DST!='RS',pRSATT:=0.0]      #no RR coprev treated as RS, ie rrCDR=1
 
-## === PT to <5/HIV
-cat('=== PT to <5/HIV\n')
-PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
-
 ## --- (no PT)
 cat('--- (no PT)\n')
 PSA[,RR:=1.0] # set PT efficacy
@@ -232,6 +228,10 @@ setCosts(PSA,intervention='No HHCM',regimen="None")
 PSA <- runallfuns(PSA)      #calculate
 I1H <- resultnoHIV(PSA)
 I1H[,intervention:='HHCM, no PT']; I1H[,`PT regimen`:='none'];
+
+## === PT to <5/HIV
+cat('=== PT to <5/HIV\n')
+PSA[acat=='[0,5)' | hiv==1, PTcov:=1] #set coverages
 
 ## --- (FQ)
 cat('--- (FQ)\n')

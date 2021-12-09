@@ -665,7 +665,7 @@ outcomes <- dcast(out,rtype  + variable ~
 fwrite(outcomes,file=here('output/table_outcomes.csv'))
 
 
-## === resources table
+## === resources table - jj
 rzn <- c('hhc','ptc','rsatt','rratt')
 rznl <- c('repn','intervention','PT regimen',rzn)
 
