@@ -458,7 +458,7 @@ GP <- ggplot(CECR,
   ylab('Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)')+
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.8,0.2))
-GP
+## GP
 
 ## NOTE seems to want to be run interactively?
 ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)

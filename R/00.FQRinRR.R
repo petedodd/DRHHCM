@@ -9,6 +9,7 @@ library(data.table)
 ## part 1 is included for reproducibility really
 ## the nearest neighbour structure is included in repo/indata so part 2 can be run without running part 1
 runpart1 <- FALSE #run part 1 too?
+load(here('indata/isoidx.Rdata')) #country list
 
 if(runpart1){
 
@@ -20,7 +21,6 @@ if(runpart1){
 
   ## Checking the countries and constructing adjacencies
   ## Load spatial data and compare with covariates
-  load(here('indata/isoidx.Rdata')) #country list
   data(countriesCoarse)                   #load rworldmap data
   names(countriesCoarse@data)[30] <- 'iso3' #rename
 

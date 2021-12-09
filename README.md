@@ -42,14 +42,13 @@ The estimates of household size by index TB age/sex is based on previously publi
 
 ## Memory requirements
 
-With a full-size PSA, a reasonable amount of RAM is needed (it was run on a machine with 36Gb).
+With a full-size PSA, a reasonable amount of RAM is needed (it was run on a machine with 36Gb; it probably needs at least 10Gb to not cause trouble).
 
 Commenting out the rep limitation in file 04 around line 14 (ie using 100 replicates) should allow use on a machine with (eg) 8Gb RAM.
 
 
 ## Description of analysis scripts
 
-- need to include the costs TODO
 
 ### 00.FQRinRR.R ###
 
@@ -71,9 +70,6 @@ This file builds the base PSA object for onward analyses.
 ### 04.calculations.R ###
 
 This file performs the calculations. It contains functions defining the interventions, and calculating the costs from unit costs. After running the two scripts below in utils/, the outcome data for all scenarios are computed and saved. 
-
-TODO
-- remove 100 rep limitation (late adjustment, not on laptop)
 
 It sources:
 

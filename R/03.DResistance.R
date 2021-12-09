@@ -111,6 +111,7 @@ PSA[repn==1,sum(rrmdr_15plus_tx)/2e5]
 ## concordance (assuming all RR index cases):
 ## NOTE read in PZ for this parameter
 ## NOTE at level of country x replicate
+set.seed(123)
 concord <- as.data.table(expand.grid(iso3=PSA[,unique(iso3)],
                                      repn=1:PSA[,max(repn)]))
 concord[,concord:=PZ$concord$r(nrow(concord))]
