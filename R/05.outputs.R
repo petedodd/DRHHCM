@@ -112,6 +112,16 @@ WB <- fread(here('indata/WBIL.csv'))    #income
 IV <- IV[!iso3 %in% bad]
 IVb <- IVb[!iso3 %in% badb]
 
+cat(IV[,length(unique(iso3))],file=here('output/isolistN.txt'))
+cat(IV[,unique(iso3)],file=here('output/isolist.txt'),sep=', ')
+
+## NOTE temporary
+maxrep <- 101
+IV <- IV[repn<maxrep]
+IVb <- IVb[repn<maxrep]
+IVT <- IVT[repn<maxrep]
+FRF <- FRF[id<maxrep]
+
 
 ## =================================
 ## DATA WORK
@@ -153,7 +163,8 @@ BM <- melt(B,id=c('intervention','PT regimen','quantity'))
 
 BMR <- BM[variable %in% c('ptc','hhc') &
           quantity %in% c('per TB case averted','per TB death averted')]
-BMR[grep('BDQ',`PT regimen`),`PT regimen`:='BDQ/DLM']
+BMR[grep('BDQ',`PT regimen`),`PT regimen`:='Bdq/Dlm']
+BMR[grep('FQ',`PT regimen`),`PT regimen`:='Fq']
 BMR[grepl('death',quantity),quantity:='Death']
 BMR[grepl('case',quantity),quantity:='Incident TB']
 BMR[grepl('ptc',variable),variable:='Preventive therapy courses']
@@ -165,12 +176,13 @@ BMR$intervention <- factor(BMR$intervention,
                            ordered = TRUE)
 BMR <- BMR[!is.na(intervention)]    #NOTE this is to drop the no PT
 BMR[,intervention2:=gsub('PT','TPT',intervention)]
+BMR[quantity=='Incident TB',quantity:='Incident tuberculosis']
 BMR$intervention2 <- factor(BMR$intervention2,
                            levels=c("TPT to <5/HIV+",
                                     "TPT to <5/HIV+/TST+",
                                     "TPT to <15"),
                            ordered = TRUE)
-BMR$`PT regimen` <- factor(BMR$`PT regimen`,levels=c('FQ','BDQ/DLM'),ordered = TRUE)
+BMR$`PT regimen` <- factor(BMR$`PT regimen`,levels=c('Fq','Bdq/Dlm'),ordered = TRUE)
 
 ## === data for FQR figures
 ## NNT vs prop RR that are FQR (by country)
@@ -218,7 +230,8 @@ IVb <- merge(IVb,WK,by='iso3',all.x = TRUE)
 ## restrict to LVX/DLM for CEACs
 IVE <- rbind(IV,IVb)
 IVE <- IVE[!`PT regimen` %in% c('MXF','BDQ')]
-IVE[`PT regimen`=='FQ',`PT regimen`:='LVX']
+IVE[`PT regimen`=='FQ',`PT regimen`:='Lfx']
+IVE[`PT regimen`=='BDQ',`PT regimen`:='Bdq']
 
 ## data for CEACs
 EAC <- IVE[iso3 %in% HBC[g.hbmdr==1,iso3]]
@@ -233,6 +246,7 @@ for(th in threshold){
   CEAC[[paste0(th)]] <- tmp
 }
 CEAC <- rbindlist(CEAC)
+CEAC[`PT regimen`=='DLM',`PT regimen`:='Dlm']
 
 ## --- data for CE plot
 
@@ -305,7 +319,7 @@ IVT[,.(inCFR=1e2*sum(incdeaths)/sum(inctb), # ~ 15%
 ## FIGURES
 ## =================================
 cat("==== doing FIGURES =======\n")
-colz2 <- c('BDQ/DLM'="#E69F00",'FQ'="#000000")
+colz2 <- c('Bdq/Dlm'="#E69F00",'Fq'="#000000")
 
 ## also save data
 fwrite(BMR[,.(intervention,`PT regimen`,quantity,variable,value)],
@@ -352,7 +366,7 @@ tmp[,region:=g_whoregion]
 tmp <- merge(tmp,WB[,.(iso3,hic=(income=='High income'))],by='iso3')
 tmp <- tmp[hic!=TRUE] #strip out high income countries
 tmp <- tmp[ptc>0]     #the zeros are pacific islands with 0 across the board
-tmp[`PT regimen`!='FQ',`PT regimen`:='BDQ/DLM']
+tmp[`PT regimen`!='FQ',`PT regimen`:='Bdq/Dlm']
 
 ## face validity checks
 GPd <- ggplot(tmp,
@@ -392,7 +406,7 @@ GPa <- ggplot(tmp,
 
 ## reshape & aggregate
 tmp2 <- dcast(tmp,iso3+g_whoregion ~ `PT regimen`,value.var = 'ptc')
-tmp2[,df:=FQ-`BDQ/DLM`]
+tmp2[,df:=FQ-`Bdq/Dlm`]
 tmp2 <- tmp2[,.(df=median(df,na.rm=TRUE)),by=.(g_whoregion)]
 tmp2 <- tmp2[order(as.character(g_whoregion))]
 tmp2[,region:=g_whoregion]
@@ -427,12 +441,13 @@ lvls <- as.character(tmp[order(gdp),iso3])
 tmp[,c('intervention','PT regimen'):=NA]
 CECR$iso3 <- factor(CECR$iso3,levels=lvls,ordered = TRUE)
 tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
+CECR[`PT regimen`=='DLM',`PT regimen`:='Dlm']
 CECR$`PT regimen` <- factor(CECR$`PT regimen`,
-                            levels=c('none','LVX','DLM'))
+                            levels=c('none','Lfx','Dlm'))
 CECR[,intervention2:=gsub('PT','TPT',intervention)]
 tmp[,intervention2:=gsub('PT','TPT',intervention)]
 
-colz <- c('none'="#56B4E9",'LVX'="#000000",'DLM'="#E69F00")
+colz <- c('none'="#56B4E9",'Lfx'="#000000",'Dlm'="#E69F00")
 shpz <- c("HHCM, no TPT"=1,"TPT to <5/HIV+"=2,
           "TPT to <5/HIV+/TST+"=3,"TPT to <15"=4)
 shps <- c("HHCM, no PT"=1,"PT to <5/HIV+"=2,
@@ -484,7 +499,7 @@ ggsave(GP,file=here('output/Sfigure_CEAC.png'),w=12,h=12)
 tmp <- unique(CEC[!is.na(gdp),.(gdp,iso3)])
 lvls <- tmp[order(gdp),iso3]
 tmp[,c('intervention','PT regimen'):=NA]
-
+CEC[`PT regimen`=='DLM',`PT regimen`:='Dlm']
 CEC$iso3 <- factor(CEC$iso3,levels=lvls,ordered = TRUE)
 tmp$iso3 <- factor(tmp$iso3,levels=lvls,ordered = TRUE)
 
@@ -727,7 +742,7 @@ WRb <- IVb[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
 WRa[,table(`PT regimen`,intervention)]
 
 
-WRc[`PT regimen`=="FQ",`PT regimen`:="LVX"]
+WRc[`PT regimen`=="FQ",`PT regimen`:="Lfx"]
 
 WR0 <- unique(WRa[,.(repn,deaths0,cost0,lys0,g_whoregion)])
 
@@ -746,7 +761,7 @@ Wc <- IV[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
 Wb <- IVb[,.(deaths=sum(deaths),cost=sum(cost),lys=sum(lys1)),
           by = .(repn,intervention,`PT regimen`)]
 
-Wc[`PT regimen`=="FQ",`PT regimen`:="LVX"]
+Wc[`PT regimen`=="FQ",`PT regimen`:="Lfx"]
 
 unique(Wa[,.(repn,`PT regimen`,deaths0,cost0,lys0)])
 W0 <- unique(Wa[,.(repn,deaths0,cost0,lys0)])
@@ -789,7 +804,7 @@ Wo$intervention <- factor(Wo$intervention,
                                    "PT to <15"),
                           ordered = TRUE)
 Wo$`PT regimen` <- factor(Wo$`PT regimen`,
-                          levels=c("none","LVX","MXF","DLM","BDQ"),
+                          levels=c("none","Lfx","MXF","DLM","BDQ"),
                           ordered = TRUE)
 
 Wo <- dcast(Wo,variable~intervention+`PT regimen`,value.var = 'value')
