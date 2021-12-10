@@ -115,12 +115,12 @@ IVb <- IVb[!iso3 %in% badb]
 cat(IV[,length(unique(iso3))],file=here('output/isolistN.txt'))
 cat(IV[,unique(iso3)],file=here('output/isolist.txt'),sep=', ')
 
-## NOTE temporary
-maxrep <- 101
-IV <- IV[repn<maxrep]
-IVb <- IVb[repn<maxrep]
-IVT <- IVT[repn<maxrep]
-FRF <- FRF[id<maxrep]
+## ## NOTE temporary
+## maxrep <- 101
+## IV <- IV[repn<maxrep]
+## IVb <- IVb[repn<maxrep]
+## IVT <- IVT[repn<maxrep]
+## FRF <- FRF[id<maxrep]
 
 
 ## =================================
