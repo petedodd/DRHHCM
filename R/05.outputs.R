@@ -333,6 +333,7 @@ fwrite(TMR,
 ## graph
 GP <- ggplot(TMR,aes(intervention,value)) +
   geom_bar(stat='identity',position='dodge') +
+  geom_text(aes(label=ceiling(value)),vjust=-.1,col=2)+
   facet_grid(variable ~ quantity ,scales='free') +
   xlab('Intervention')+
   ylab('Additional resource (row) per quantity averted (column)') +
