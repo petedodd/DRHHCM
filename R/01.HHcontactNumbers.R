@@ -6,6 +6,9 @@ library(here)
 library(data.table)
 library(ggplot2)
 
+## are we doing a sensitivity analysis including pulmonary fraction
+pulmsa <- (scan(here('indata/pulmonary.sensitivity.analysis.txt'))>1)
+
 ## ================ initial data pooling ===========
 
 ## --- WHO data from
@@ -222,8 +225,11 @@ nmz <- gsub("p","",nmzp)
 ## merge & multiply
 D <- merge(D,NPRW,by='iso3',all.x = TRUE,all.y=FALSE) #join in
 D[,c(nmz):=lapply(.SD,as.numeric),.SDcols=nmz] #make numeric from int
-for(nm in nmz) # multiply by corresponding pulmonary factor
-  D[,c(nm):=D[,nm,with=FALSE] * D[,paste0('p',nm),with=FALSE]]
+## only apply the pulmonary props as a SA
+if(pulmsa){
+  for(nm in nmz) # multiply by corresponding pulmonary factor
+    D[,c(nm):=D[,nm,with=FALSE] * D[,paste0('p',nm),with=FALSE]]
+}
 D[,c(nmzp):=NULL]                       #ditch the pulmonary props
 
 

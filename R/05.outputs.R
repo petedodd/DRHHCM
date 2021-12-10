@@ -830,28 +830,4 @@ fwrite(Wo,file=here('output/table_HE.csv'))
 
 cat("==== TABLES done =======\n")
 
-## =======================================
-## LOADING TO GOOGLE SHEETS (authors only)
-## =======================================
-
-if(FALSE){
-  library(googlesheets4)
-
-  ## setup - only accessible to those with access to this sheet
-  yourl <- "https://docs.google.com/spreadsheets/d/1leFkszUMRhR7i2iLgEWbnO1bbHlCq1mE8ikYYMaVG24/edit#gid=0"
-  shid <- as.character(as_sheets_id(yourl))
-
-  ## utility function
-  upload.to.sheets <- function(filename,sheetid){
-    fn <- glue(here('output/{filename}'))
-    tmp <- fread(file=fn)
-    write_sheet(tmp,sheetid,sheet=gsub("\\.csv","",filename))
-  }
-
-  ## read & upload relevant data
-  upload.to.sheets("table_resources.csv",shid)
-  upload.to.sheets("table_outcomes.csv",shid)
-  upload.to.sheets("table_HE.csv",shid)
-
-}
 
