@@ -102,6 +102,8 @@ setCosts <- function(D, #data
               c_xpert_test.04,
               c_xpert_test.514)]
 
+  if(intervention=='No HHCM') D[,c_tbscreen:=0.0] #no screening here
+
   ## costs of treatment of prevalent TB: note OPD visit not included
   D[,c_rsatt:= c_hiv_test + c_dstb_tx] #HIV test + ATT, not age dept
   D[,c_rratt:= c_hiv_test +
@@ -210,7 +212,7 @@ setCosts(PSA,intervention='No HHCM',regimen="None")
 PSA <- runallfuns(PSA)
 I0 <- resultnoHIV(PSA)
 ## PT coverage & regimen
-I0[,intervention:='No HHCM']; I0[,`PT regimen`:='none']
+I0[,intervention:='No HHCM']; I0[,`PT regimen`:='none']; I0[,hcc:=0.0]
 ## checks
 PSA[,summary(progn)]
 PSA[,summary(coprev)]
@@ -363,7 +365,7 @@ PSA <- runallfuns(PSA)      #calculate
 PSA[,summary(progn)]
 PSA[,summary(coprev)]
 TI0H <- resultnoHIV(PSA)
-TI0H[,intervention:='none']; TI0H[,`PT regimen`:='none'];
+TI0H[,intervention:='none']; TI0H[,`PT regimen`:='none']; TI0H[,hcc:=0.0]
 ## INTERVENTIONS: DS TEST
 ## all intervention scenarios include finding all coprev & appropriate ATT:
 PSA[,CDR:=1.0]                  #all coprev detected

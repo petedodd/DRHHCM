@@ -105,3 +105,6 @@ This computations uses the R package https://github.com/petedodd/discly whose un
 ### sensitivity analysis ###
 
 The sensitivity analysis to apply additional restriction factors for pulmonary TB are run by changing the input indata/pulmonary.sensitivity.analysis.txt to an integer >0 and then running scripts 01 through to 05. The R/utils/uploadresults.R (authors only) will load the tables to a separate part of the document.
+
+TODO
+I0[,hhc:=0] & costing

@@ -116,6 +116,11 @@ F <- makeTfuns(H,qnt=c('check','deaths','incdeaths','inctb',
                        'cost','prevtb'))
 str(F)
 
+tree2file(H,
+          here('output/tree.cost.check.csv'),
+          'p','cost')
+
+
 ## running all function
 runallfuns <- function(D){
   D$check <- F$checkfun(D); print('check run!')
