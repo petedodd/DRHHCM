@@ -10,7 +10,7 @@ library(googlesheets4)
 
 
 ## are we doing a sensitivity analysis including pulmonary fraction
-pulmsa <- (scan(here('indata/pulmonary.sensitivity.analysis.txt'))>1)
+(pulmsa <- (scan(here('indata/pulmonary.sensitivity.analysis.txt'))>1))
 
 ## setup - only accessible to those with access to this sheet
 yourl <- "https://docs.google.com/spreadsheets/d/1leFkszUMRhR7i2iLgEWbnO1bbHlCq1mE8ikYYMaVG24/edit#gid=0"

@@ -115,13 +115,6 @@ IVb <- IVb[!iso3 %in% badb]
 cat(IV[,length(unique(iso3))],file=here('output/isolistN.txt'))
 cat(IV[,unique(iso3)],file=here('output/isolist.txt'),sep=', ')
 
-## ## NOTE temporary
-## maxrep <- 101
-## IV <- IV[repn<maxrep]
-## IVb <- IVb[repn<maxrep]
-## IVT <- IVT[repn<maxrep]
-## FRF <- FRF[id<maxrep]
-
 
 ## =================================
 ## DATA WORK
@@ -469,7 +462,7 @@ GP <- ggplot(CECR,
   annotate(geom='text',y=tp*0.8,x=19,label='1.0xGDP')+
   annotate(geom='text',y=tp*0.8,x=25,label='0.5xGDP')+
   coord_flip()+
-  scale_y_continuous(label=absspace)+## ,limits=c(0,tp))+
+  scale_y_continuous(label=absspace,limits=c(0,tp))+
   xlab('Country ISO3 code')+
   ylab('Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)')+
   theme_classic()+ggpubr::grids()+

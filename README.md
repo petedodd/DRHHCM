@@ -94,14 +94,9 @@ This contains most of the non-structural modelling logic. It loads the parameter
 
 This file computes tabular and graphical summary output from the PSA data.
 
-It sources:
+It sources utils/makeLYs.R which will be a bit slow first time around. This script computes mean discounted life-years for each country to associate with deaths.
 
-utils/
-- makeLYs.R
-
-which will be a bit slow first time around. This script computes mean discounted life-years for each country to associate with deaths.
-
-This computations uses the R package https://github.com/petedodd/discly whose underlying data is described in the paper and repo:
+These LY computations uses the R package https://github.com/petedodd/discly whose underlying data is described in the paper and repo:
 
 - http://dx.doi.org/10.1016/S1473-3099(20)30919-1
 - https://github.com/petedodd/post
