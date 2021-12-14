@@ -212,7 +212,7 @@ setCosts(PSA,intervention='No HHCM',regimen="None")
 PSA <- runallfuns(PSA)
 I0 <- resultnoHIV(PSA)
 ## PT coverage & regimen
-I0[,intervention:='No HHCM']; I0[,`PT regimen`:='none']; I0[,hcc:=0.0]
+I0[,intervention:='No HHCM']; I0[,`PT regimen`:='none']; I0[,hhc:=0.0]
 ## checks
 PSA[,summary(progn)]
 PSA[,summary(coprev)]
@@ -365,7 +365,7 @@ PSA <- runallfuns(PSA)      #calculate
 PSA[,summary(progn)]
 PSA[,summary(coprev)]
 TI0H <- resultnoHIV(PSA)
-TI0H[,intervention:='none']; TI0H[,`PT regimen`:='none']; TI0H[,hcc:=0.0]
+TI0H[,intervention:='none']; TI0H[,`PT regimen`:='none']; TI0H[,hhc:=0.0]
 ## INTERVENTIONS: DS TEST
 ## all intervention scenarios include finding all coprev & appropriate ATT:
 PSA[,CDR:=1.0]                  #all coprev detected

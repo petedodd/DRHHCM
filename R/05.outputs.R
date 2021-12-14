@@ -549,7 +549,6 @@ IVS <- IV[,.(
   ),
   by = .(repn,intervention,`PT regimen`)]
 
-
 DIVS <- IV[,.(
   ## increments
   Ddeaths=sum(deaths-deaths0),
@@ -570,7 +569,7 @@ IVS0 <- IV[`PT regimen`=='FQ', #NOTE otherwise duplicated
              rsatt=sum(rsatt0),
              rratt=sum(rratt0),
              ptc=sum(ptc0),
-             hhc=sum(hhc),
+             hhc=0, #hhc not recorded in 04, but =0
              cost=sum(cost0)),
           by = .(repn,intervention,`PT regimen`)]
 IVS0 <- IVS0[intervention=='PT to <15']
