@@ -50,9 +50,14 @@ Commenting out the rep limitation in file 04 around line 14 (ie using 100 replic
 ## Description of analysis scripts
 
 
-### 00.FQRinRR.R ###
+### 00a.FQRinRR.R ###
 
 This file generates the estimates of FQR resistance in RR. It is optional to run this analysis as the output is included in indata/. Within this analysis, there are two parts: part 1 generates the nearest neighbour structure and is also optional (output in indata/); part 2 uses the neighbour structure to generate the FQR estimates. 
+
+### 00b.unit.costs.R ###
+
+This file generates the country-level unit cost estimates. It calls utils/TB_care_costs.R to download some data from the web if not already present, and do some initial processing. Further collated input from indata/other_public_costs.csv is used. The outputs are saved in outdata/country_unit_costs.R. It is optional to run this script as the output data is included in the repo.
+
 
 ### 01.HHcontactNumbers.R ###
 
