@@ -1,25 +1,25 @@
 intervention,PT regimen,quantity,variable,value
-PT to <5/HIV+,Fq,Incident tuberculosis,Preventive therapy courses,29.8777786676905
-PT to <5/HIV+,Bdq/Dlm,Incident tuberculosis,Preventive therapy courses,23.6016156791959
-PT to <15,Fq,Incident tuberculosis,Preventive therapy courses,35.5574352002026
-PT to <15,Bdq/Dlm,Incident tuberculosis,Preventive therapy courses,27.9941378189945
-PT to <5/HIV+/TST+,Fq,Incident tuberculosis,Preventive therapy courses,29.9164838389432
-PT to <5/HIV+/TST+,Bdq/Dlm,Incident tuberculosis,Preventive therapy courses,23.570043989061
-PT to <5/HIV+,Fq,Death,Preventive therapy courses,85.7882234988503
-PT to <5/HIV+,Bdq/Dlm,Death,Preventive therapy courses,66.9838373769879
-PT to <15,Fq,Death,Preventive therapy courses,138.652214359286
-PT to <15,Bdq/Dlm,Death,Preventive therapy courses,108.000459479142
-PT to <5/HIV+/TST+,Fq,Death,Preventive therapy courses,110.757319306233
-PT to <5/HIV+/TST+,Bdq/Dlm,Death,Preventive therapy courses,86.3169517530399
-PT to <5/HIV+,Fq,Incident tuberculosis,Household contacts screened,64.4322173609073
-PT to <5/HIV+,Bdq/Dlm,Incident tuberculosis,Household contacts screened,50.8962330317669
-PT to <15,Fq,Incident tuberculosis,Household contacts screened,38.5929999136616
-PT to <15,Bdq/Dlm,Incident tuberculosis,Household contacts screened,30.3835846228807
-PT to <5/HIV+/TST+,Fq,Incident tuberculosis,Household contacts screened,42.437869169377
-PT to <5/HIV+/TST+,Bdq/Dlm,Incident tuberculosis,Household contacts screened,33.4343406505533
-PT to <5/HIV+,Fq,Death,Household contacts screened,185.011922698162
-PT to <5/HIV+,Bdq/Dlm,Death,Household contacts screened,144.453776772867
-PT to <15,Fq,Death,Household contacts screened,150.493265725581
-PT to <15,Bdq/Dlm,Death,Household contacts screened,117.221325737468
-PT to <5/HIV+/TST+,Fq,Death,Household contacts screened,157.102675170849
-PT to <5/HIV+/TST+,Bdq/Dlm,Death,Household contacts screened,122.431959674611
+PT to <5/HIV+,Fq,Incident tuberculosis,Preventive therapy courses,29.6820259820327
+PT to <5/HIV+,Bdq/Dlm,Incident tuberculosis,Preventive therapy courses,23.5676807954661
+PT to <15,Fq,Incident tuberculosis,Preventive therapy courses,35.030481507073
+PT to <15,Bdq/Dlm,Incident tuberculosis,Preventive therapy courses,27.8268667581278
+PT to <5/HIV+/TST+,Fq,Incident tuberculosis,Preventive therapy courses,29.4705037962218
+PT to <5/HIV+/TST+,Bdq/Dlm,Incident tuberculosis,Preventive therapy courses,23.4098261930609
+PT to <5/HIV+,Fq,Death,Preventive therapy courses,24.7604594243152
+PT to <5/HIV+,Bdq/Dlm,Death,Preventive therapy courses,22.9488580970308
+PT to <15,Fq,Death,Preventive therapy courses,46.0902160301678
+PT to <15,Bdq/Dlm,Death,Preventive therapy courses,42.2144108316301
+PT to <5/HIV+/TST+,Fq,Death,Preventive therapy courses,35.7925288163134
+PT to <5/HIV+/TST+,Bdq/Dlm,Death,Preventive therapy courses,32.865311226245
+PT to <5/HIV+,Fq,Incident tuberculosis,Household contacts screened,64.0124417535159
+PT to <5/HIV+,Bdq/Dlm,Incident tuberculosis,Household contacts screened,50.8258670857498
+PT to <15,Fq,Incident tuberculosis,Household contacts screened,38.0245121433823
+PT to <15,Bdq/Dlm,Incident tuberculosis,Household contacts screened,30.2050019038566
+PT to <5/HIV+/TST+,Fq,Incident tuberculosis,Household contacts screened,41.779787599642
+PT to <5/HIV+/TST+,Bdq/Dlm,Incident tuberculosis,Household contacts screened,33.187488722851
+PT to <5/HIV+,Fq,Death,Household contacts screened,53.3954599757575
+PT to <5/HIV+,Bdq/Dlm,Death,Household contacts screened,49.4889110482097
+PT to <15,Fq,Death,Household contacts screened,50.0281401044976
+PT to <15,Bdq/Dlm,Death,Household contacts screened,45.8211269643378
+PT to <5/HIV+/TST+,Fq,Death,Household contacts screened,50.7339299753883
+PT to <5/HIV+/TST+,Bdq/Dlm,Death,Household contacts screened,46.5851192747887

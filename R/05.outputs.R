@@ -143,6 +143,16 @@ rm(KK1,KK2)
 setnames(KK,old=c('cost','costacf','costtpt','costatt'),
          new=c('total','case-finding','TPT-related','ATT-related'))
 
+KKR <- KK[iso3 %in% HBC[g.hbmdr==1,iso3]]
+KKR[,total:=NULL]
+KKR <- melt(KKR,id=c('iso3','intervention','PT regimen'))
+KKR$intervention <- factor(KKR$intervention,
+                           levels=c("HHCM, no PT",
+                                    "PT to <5/HIV+",
+                                    "PT to <5/HIV+/TST+",
+                                    "PT to <15"),
+                           ordered = TRUE)
+
 
 ## === rename FQR
 DX <- FRF[,.(prop=mean(fqr)),by=iso3]
@@ -546,23 +556,13 @@ ggsave(GP,file=here('output/Sfigure_CE.png'),w=20,h=25)
 
 
 ## --- supplementary figure on cost breakdown
-KKR <- KK[iso3 %in% HBC[g.hbmdr==1,iso3]]
-KKR[,total:=NULL]
-KKR <- melt(KKR,id=c('iso3','intervention','PT regimen'))
-KKR$intervention <- factor(KKR$intervention,
-                           levels=c("HHCM, no PT",
-                                    "PT to <5/HIV+",
-                                    "PT to <5/HIV+/TST+",
-                                    "PT to <15"),
-                           ordered = TRUE)
-
 
 GP <- ggplot(KKR[`PT regimen` %in% c('Lfx','none')],
              aes(intervention,value,fill=`variable`))+
   geom_bar(stat='identity')+
   facet_wrap(~iso3,scales='free')+
   scale_y_continuous(label=comma)+
-  xlab('Intervention')+ylab('Cost')+
+  xlab('Intervention (with Lfx-based TPT)')+ylab('Cost')+
   theme(legend.position = 'top',
         legend.title = element_blank(),
         axis.text.x =element_text(angle = 45, hjust=1)
@@ -570,6 +570,33 @@ GP <- ggplot(KKR[`PT regimen` %in% c('Lfx','none')],
 ## GP
 
 ggsave(GP,file=here('output/Sfigure_costs.png'),w=25,h=15)
+
+
+## --- understanding odd cost countries
+oddcs <- c('RUS','KAZ','PER','BLR')
+KK[`PT regimen` %in% 'Lfx' &
+   intervention=='PT to <15',
+   attfrac:=`ATT-related`/total]
+tmp <- KK[is.finite(attfrac) &
+          iso3 %in% HBC[g.hbmdr==1,iso3],
+          .(iso3,attfrac)]
+tmp[,odd:=ifelse(iso3 %in% oddcs,TRUE,FALSE)]
+tmp <- merge(tmp,DX,by='iso3',all.x=TRUE,all.y=FALSE)
+tmp[,cl:=ifelse(odd,'red','black')]
+
+GP <- ggplot(tmp,
+             aes(prop,attfrac,
+                 col=I(cl),label=iso3))+
+  geom_point()+
+  scale_y_continuous(label=percent)+
+  scale_x_continuous(label=percent)+
+  geom_text_repel()+
+  xlab('Proportion of MDR/RR-TB that is FQR')+
+  ylab('Proportion of costs that are ATT-related')+
+  theme_classic() + ggpubr::grids()
+## GP
+
+ggsave(GP,file=here('output/Sfigure_cost_explore.png'),w=10,h=10)
 
 
 cat("==== FIGURES done =======\n")
