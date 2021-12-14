@@ -109,7 +109,8 @@ setCosts <- function(D, #data
   D[,c_rratt:= c_hiv_test +
        ifelse(acat=='[0,5)',
               c_mdrtb_tx1.04*FQR + c_mdrtb_tx2.04*(1-FQR),
-              c_mdrtb_tx1.514*FQR + c_mdrtb_tx2.514*(1-FQR))] #HIV test + MDR ATT
+              c_mdrtb_tx1.514*FQR + c_mdrtb_tx2.514*(1-FQR))]
+  ##HIV test + MDR ATT
 
   ## costs of treatment for incident TB (+/- PT): treatment, but also dx
   ## assumes future presumptive TB proportional to how much TB there is
@@ -129,9 +130,11 @@ setCosts <- function(D, #data
               c_xpert_test.514)]
 
   ## PT screen costs (depends strategy)
-  D[,c_ptscreen:=0] #applies to 2 No PT options & 'PT to <15' where no screening needed
+  D[,c_ptscreen:=0]
+  ## applies to 2 No PT options & 'PT to <15' where no screening needed
   if(intervention=='PT to <5/HIV+/TST+'){
-    D[acat=='[5,15)',c_ptscreen:=(c_hiv_test+c_tst_test)] #NOTE assumes all get both, could change
+    D[acat=='[5,15)',c_ptscreen:=(c_hiv_test+c_tst_test)]
+    ##NOTE assumes all get both, could change
   }
   if(intervention=='PT to <5/HIV+'){
     D[acat=='[5,15)',c_ptscreen:=c_hiv_test] #
@@ -179,14 +182,13 @@ setCosts <- function(D, #data
                 c_tpt_DLM.514)
       ]
   }
-
 }
 
 ## ====== BASECASE
 tosave <-  c('iso3','repn','acat','DST',
              'deaths','incdeaths','inctb','rsatt','rratt',
              'ptc','rsatti','rratti',
-             'cost',
+             'cost','costacf','costtpt','costatt',
              'value')
 tosavev <- tosave[-c(1:4)]
 tosavev2 <- c(tosavev,'hhc')
@@ -217,6 +219,7 @@ I0[,intervention:='No HHCM']; I0[,`PT regimen`:='none']; I0[,hhc:=0.0]
 PSA[,summary(progn)]
 PSA[,summary(coprev)]
 
+
 ## ====== INTERVENTIONS
 ## NOTE all intervention scenarios include finding all coprev & appropriate ATT:
 PSA[,CDR:=1.0]                  #all coprev detected
@@ -226,7 +229,7 @@ PSA[DST!='RS',pRSATT:=0.0]      #no RR coprev treated as RS, ie rrCDR=1
 ## --- (no PT)
 cat('--- (no PT)\n')
 PSA[,RR:=1.0] # set PT efficacy
-setCosts(PSA,intervention='No HHCM',regimen="None")
+setCosts(PSA,intervention='HHCM, no PT',regimen="None")
 PSA <- runallfuns(PSA)      #calculate
 I1H <- resultnoHIV(PSA)
 I1H[,intervention:='HHCM, no PT']; I1H[,`PT regimen`:='none'];
@@ -417,9 +420,11 @@ IV <- rbindlist(list(
 I0[,`PT regimen`:=NULL]
 I0[,intervention:=NULL]
 
-tojoin <- paste0(tosave[5:13],0) #distinguish baseline names
-names(I0)[5:13] <- tojoin
-tojoin <- names(I0)[1:13]
+## distinguish baseline names
+ne <- (length(tosave)-1)
+tojoin <- paste0(tosave[5:ne],0)
+names(I0)[5:ne] <- tojoin
+tojoin <- names(I0)[1:ne]
 
 IV <- merge(IV,I0[,..tojoin],
             by=c('iso3','repn','acat','DST'),
@@ -450,9 +455,9 @@ save(IVb,file=here('data/IVb.Rdata')) # NOTE this is biggish
 
 IVT <- rbindlist(list(TI1H,TI2H,TI3H))  #RS test
 ## NOTE including incident treatments here for checks
-tojoin <- paste0(tosave[5:13],0) #distinguish baseline names
-names(TI0H)[5:13] <- tojoin
-tojoin <- names(TI0H)[1:13]
+tojoin <- paste0(tosave[5:ne],0) #distinguish baseline names
+names(TI0H)[5:ne] <- tojoin
+tojoin <- names(TI0H)[1:ne]
 
 IVT <- merge(IVT,TI0H[,..tojoin],
             by=c('iso3','repn','acat','DST'),

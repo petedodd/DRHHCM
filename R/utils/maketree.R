@@ -104,8 +104,11 @@ tree2file(H,
 
 xtra <- fread(here('indata/costlabels.csv'))
 
-H$Set(cost=xtra$cost)
-H$Set(prevtb=xtra$prevtb)
+H$Set(cost=xtra$cost) #total
+H$Set(costacf=xtra$costacf)
+H$Set(costtpt=xtra$costtpt)
+H$Set(costatt=xtra$costatt)
+H$Set(prevtb=xtra$prevtb) #also prev tb
 
 ## ## parameters
 ## showParmz(H)
@@ -113,26 +116,29 @@ H$Set(prevtb=xtra$prevtb)
 ## functions
 F <- makeTfuns(H,qnt=c('check','deaths','incdeaths','inctb',
                        'rsatt','rratt','rsatti','rratti','ptc',
-                       'cost','prevtb'))
+                       'prevtb','cost','costacf','costtpt','costatt'))
 str(F)
 
 tree2file(H,
           here('output/tree.cost.check.csv'),
-          'p','cost')
+          'p','cost','costacf','costtpt','costatt')
 
 
 ## running all function
 runallfuns <- function(D){
-  D$check <- F$checkfun(D); print('check run!')
-  D$deaths <- F$deathsfun(D); print('deaths run!')
-  D$incdeaths <- F$incdeathsfun(D); print('incdeaths run!')
-  D$inctb <- F$inctbfun(D); print('inctb run!')
-  D$rsatt <- F$rsattfun(D); print('rsatt run!')
-  D$rratt <- F$rrattfun(D); print('rratt run!')
-  D$rsatti <- F$rsattifun(D); print('rsatti run!')
-  D$rratti <- F$rrattifun(D); print('rratti run!')
-  D$ptc <- F$ptcfun(D); print('ptc run!')
-  D$cost <- F$costfun(D); print('cost run!')
-  D$prevtb <- F$prevtbfun(D); print('prevtb run!')
+  D$check <- F$checkfun(D); cat('   check run!\n')
+  D$deaths <- F$deathsfun(D); cat('   deaths run!\n')
+  D$incdeaths <- F$incdeathsfun(D); cat('   incdeaths run!\n')
+  D$inctb <- F$inctbfun(D); cat('   inctb run!\n')
+  D$rsatt <- F$rsattfun(D); cat('   rsatt run!\n')
+  D$rratt <- F$rrattfun(D); cat('   rratt run!\n')
+  D$rsatti <- F$rsattifun(D); cat('   rsatti run!\n')
+  D$rratti <- F$rrattifun(D); cat('   rratti run!\n')
+  D$ptc <- F$ptcfun(D); cat('   ptc run!\n')
+  D$cost <- F$costfun(D); cat('   cost run!\n')
+  D$prevtb <- F$prevtbfun(D); cat('   prevtb run!\n')
+  D$costacf <- F$costacffun(D); cat('   ACF cost run!\n')
+  D$costtpt <- F$costtptfun(D); cat('   TPT cost run!\n')
+  D$costatt <- F$costattfun(D); cat('   ATT cost run!\n')
   return(D)
 }

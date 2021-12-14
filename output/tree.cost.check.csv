@@ -1,37 +1,37 @@
-levelName,p,cost
-child contact of RR index case,1,c_tbscreen
- ¦--active TB                 ,coprev,0
- ¦   ¦--RS-ATT                ,CDR*pRSATT,c_rsatt
- ¦   ¦   ¦--dies              ,CFRstx,0
- ¦   ¦   °--survives          ,1-CFRstx,0
- ¦   ¦--RR-ATT                ,CDR*(1-pRSATT),c_rratt
- ¦   ¦   ¦--dies              ,CFRrtx,0
- ¦   ¦   °--survives          ,1-CFRrtx,0
- ¦   °--no ATT                ,(1-CDR),0
- ¦       ¦--dies              ,CFRnotx,0
- ¦       °--survives          ,1-CFRnotx,0
- °--no active TB              ,1-coprev,c_ptscreen
-     ¦--PT                    ,PTcov,c_pt
-     ¦   ¦--incident TB       ,progn*RR,0
-     ¦   ¦   ¦--RS-ATT        ,CDRi*pRSATTi,c_dxrsatt
-     ¦   ¦   ¦   ¦--dies      ,CFRstx,0
-     ¦   ¦   ¦   °--survives  ,1-CFRstx,0
-     ¦   ¦   ¦--RR-ATT        ,CDRi*(1-pRSATTi),c_dxrratt
-     ¦   ¦   ¦   ¦--dies      ,CFRrtx,0
-     ¦   ¦   ¦   °--survives  ,1-CFRrtx,0
-     ¦   ¦   °--no ATT        ,(1-CDRi),0
-     ¦   ¦       ¦--dies      ,CFRnotx,0
-     ¦   ¦       °--survives  ,1-CFRnotx,0
-     ¦   °--no incident TB    ,1-progn*RR,0
-     °--no PT                 ,1-PTcov,0
-         ¦--incident TB       ,progn,0
-         ¦   ¦--RS-ATT        ,CDRi*pRSATTi,c_dxrsatt
-         ¦   ¦   ¦--dies      ,CFRstx,0
-         ¦   ¦   °--survives  ,1-CFRstx,0
-         ¦   ¦--RR-ATT        ,CDRi*(1-pRSATTi),c_dxrratt
-         ¦   ¦   ¦--dies      ,CFRrtx,0
-         ¦   ¦   °--survives  ,1-CFRrtx,0
-         ¦   °--no ATT        ,(1-CDRi),0
-         ¦       ¦--dies      ,CFRnotx,0
-         ¦       °--survives  ,1-CFRnotx,0
-         °--no incident TB    ,1-progn,0
+levelName,p,cost,costacf,costtpt,costatt
+child contact of RR index case,1,c_tbscreen,c_tbscreen,0,0
+ ¦--active TB                 ,coprev,0,0,0,0
+ ¦   ¦--RS-ATT                ,CDR*pRSATT,c_rsatt,0,0,c_rsatt
+ ¦   ¦   ¦--dies              ,CFRstx,0,0,0,0
+ ¦   ¦   °--survives          ,1-CFRstx,0,0,0,0
+ ¦   ¦--RR-ATT                ,CDR*(1-pRSATT),c_rratt,0,0,c_rratt
+ ¦   ¦   ¦--dies              ,CFRrtx,0,0,0,0
+ ¦   ¦   °--survives          ,1-CFRrtx,0,0,0,0
+ ¦   °--no ATT                ,(1-CDR),0,0,0,0
+ ¦       ¦--dies              ,CFRnotx,0,0,0,0
+ ¦       °--survives          ,1-CFRnotx,0,0,0,0
+ °--no active TB              ,1-coprev,c_ptscreen,0,c_ptscreen,0
+     ¦--PT                    ,PTcov,c_pt,0,c_pt,0
+     ¦   ¦--incident TB       ,progn*RR,0,0,0,0
+     ¦   ¦   ¦--RS-ATT        ,CDRi*pRSATTi,c_dxrsatt,0,0,c_dxrsatt
+     ¦   ¦   ¦   ¦--dies      ,CFRstx,0,0,0,0
+     ¦   ¦   ¦   °--survives  ,1-CFRstx,0,0,0,0
+     ¦   ¦   ¦--RR-ATT        ,CDRi*(1-pRSATTi),c_dxrratt,0,0,c_dxrratt
+     ¦   ¦   ¦   ¦--dies      ,CFRrtx,0,0,0,0
+     ¦   ¦   ¦   °--survives  ,1-CFRrtx,0,0,0,0
+     ¦   ¦   °--no ATT        ,(1-CDRi),0,0,0,0
+     ¦   ¦       ¦--dies      ,CFRnotx,0,0,0,0
+     ¦   ¦       °--survives  ,1-CFRnotx,0,0,0,0
+     ¦   °--no incident TB    ,1-progn*RR,0,0,0,0
+     °--no PT                 ,1-PTcov,0,0,0,0
+         ¦--incident TB       ,progn,0,0,0,0
+         ¦   ¦--RS-ATT        ,CDRi*pRSATTi,c_dxrsatt,0,0,c_dxrsatt
+         ¦   ¦   ¦--dies      ,CFRstx,0,0,0,0
+         ¦   ¦   °--survives  ,1-CFRstx,0,0,0,0
+         ¦   ¦--RR-ATT        ,CDRi*(1-pRSATTi),c_dxrratt,0,0,c_dxrratt
+         ¦   ¦   ¦--dies      ,CFRrtx,0,0,0,0
+         ¦   ¦   °--survives  ,1-CFRrtx,0,0,0,0
+         ¦   °--no ATT        ,(1-CDRi),0,0,0,0
+         ¦       ¦--dies      ,CFRnotx,0,0,0,0
+         ¦       °--survives  ,1-CFRnotx,0,0,0,0
+         °--no incident TB    ,1-progn,0,0,0,0

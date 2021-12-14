@@ -1,37 +1,37 @@
-levelName,p,check,deaths,incdeaths,inctb,rsatt,rsatti,rratt,rratti,ptc,cost,prevtb
-"child contact of RR index case",1,0,0,0,0,0,0,0,0,0,c_tbscreen,0
-"¦--active TB",coprev,0,0,0,0,0,0,0,0,0,0,1
-"¦   ¦--RS-ATT",CDR*pRSATT,0,0,0,0,1,0,0,0,0,c_rsatt,0
-"¦   ¦   ¦--dies",CFRstx,1,1,0,0,0,0,0,0,0,0,0
-"¦   ¦   °--survives",1-CFRstx,1,0,0,0,0,0,0,0,0,0,0
-"¦   ¦--RR-ATT",CDR*(1-pRSATT),0,0,0,0,0,0,1,0,0,c_rratt,0
-"¦   ¦   ¦--dies",CFRrtx,1,1,0,0,0,0,0,0,0,0,0
-"¦   ¦   °--survives",1-CFRrtx,1,0,0,0,0,0,0,0,0,0,0
-"¦   °--no ATT",(1-CDR),0,0,0,0,0,0,0,0,0,0,0
-"¦       ¦--dies",CFRnotx,1,1,0,0,0,0,0,0,0,0,0
-"¦       °--survives",1-CFRnotx,1,0,0,0,0,0,0,0,0,0,0
-"°--no active TB",1-coprev,0,0,0,0,0,0,0,0,0,c_ptscreen,0
-¦--PT,PTcov,0,0,0,0,0,0,0,0,1,c_pt,0
-"¦   ¦--incident TB",progn*RR,0,0,0,1,0,0,0,0,0,0,0
-"¦   ¦   ¦--RS-ATT",CDRi*pRSATTi,0,0,0,0,1,1,0,0,0,c_dxrsatt,0
-"¦   ¦   ¦   ¦--dies",CFRstx,1,1,1,0,0,0,0,0,0,0,0
-"¦   ¦   ¦   °--survives",1-CFRstx,1,0,0,0,0,0,0,0,0,0,0
-"¦   ¦   ¦--RR-ATT",CDRi*(1-pRSATTi),0,0,0,0,0,0,1,1,0,c_dxrratt,0
-"¦   ¦   ¦   ¦--dies",CFRrtx,1,1,1,0,0,0,0,0,0,0,0
-"¦   ¦   ¦   °--survives",1-CFRrtx,1,0,0,0,0,0,0,0,0,0,0
-"¦   ¦   °--no ATT",(1-CDRi),0,0,0,0,0,0,0,0,0,0,0
-"¦   ¦       ¦--dies",CFRnotx,1,1,1,0,0,0,0,0,0,0,0
-"¦   ¦       °--survives",1-CFRnotx,1,0,0,0,0,0,0,0,0,0,0
-"¦   °--no incident TB",1-progn*RR,1,0,0,0,0,0,0,0,0,0,0
-"°--no PT",1-PTcov,0,0,0,0,0,0,0,0,0,0,0
-"¦--incident TB",progn,0,0,0,1,0,0,0,0,0,0,0
-"¦   ¦--RS-ATT",CDRi*pRSATTi,0,0,0,0,1,1,0,0,0,c_dxrsatt,0
-"¦   ¦   ¦--dies",CFRstx,1,1,1,0,0,0,0,0,0,0,0
-"¦   ¦   °--survives",1-CFRstx,1,0,0,0,0,0,0,0,0,0,0
-"¦   ¦--RR-ATT",CDRi*(1-pRSATTi),0,0,0,0,0,0,1,1,0,c_dxrratt,0
-"¦   ¦   ¦--dies",CFRrtx,1,1,1,0,0,0,0,0,0,0,0
-"¦   ¦   °--survives",1-CFRrtx,1,0,0,0,0,0,0,0,0,0,0
-"¦   °--no ATT",(1-CDRi),0,0,0,0,0,0,0,0,0,0,0
-"¦       ¦--dies",CFRnotx,1,1,1,0,0,0,0,0,0,0,0
-"¦       °--survives",1-CFRnotx,1,0,0,0,0,0,0,0,0,0,0
-"°--no incident TB",1-progn,1,0,0,0,0,0,0,0,0,0,0
+levelName,p,check,deaths,incdeaths,inctb,rsatt,rsatti,rratt,rratti,ptc,cost,prevtb,costacf,costtpt,costatt
+"child contact of RR index case",1,0,0,0,0,0,0,0,0,0,c_tbscreen,0,c_tbscreen,0,0
+"¦--active TB",coprev,0,0,0,0,0,0,0,0,0,0,1,0,0,0
+"¦   ¦--RS-ATT",CDR*pRSATT,0,0,0,0,1,0,0,0,0,c_rsatt,0,0,0,c_rsatt
+"¦   ¦   ¦--dies",CFRstx,1,1,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   °--survives",1-CFRstx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦--RR-ATT",CDR*(1-pRSATT),0,0,0,0,0,0,1,0,0,c_rratt,0,0,0,c_rratt
+"¦   ¦   ¦--dies",CFRrtx,1,1,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   °--survives",1-CFRrtx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   °--no ATT",(1-CDR),0,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦       ¦--dies",CFRnotx,1,1,0,0,0,0,0,0,0,0,0,0,0,0
+"¦       °--survives",1-CFRnotx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"°--no active TB",1-coprev,0,0,0,0,0,0,0,0,0,c_ptscreen,0,0,c_ptscreen,0
+¦--PT,PTcov,0,0,0,0,0,0,0,0,1,c_pt,0,0,c_pt,0
+"¦   ¦--incident TB",progn*RR,0,0,0,1,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   ¦--RS-ATT",CDRi*pRSATTi,0,0,0,0,1,1,0,0,0,c_dxrsatt,0,0,0,c_dxrsatt
+"¦   ¦   ¦   ¦--dies",CFRstx,1,1,1,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   ¦   °--survives",1-CFRstx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   ¦--RR-ATT",CDRi*(1-pRSATTi),0,0,0,0,0,0,1,1,0,c_dxrratt,0,0,0,c_dxrratt
+"¦   ¦   ¦   ¦--dies",CFRrtx,1,1,1,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   ¦   °--survives",1-CFRrtx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   °--no ATT",(1-CDRi),0,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦       ¦--dies",CFRnotx,1,1,1,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦       °--survives",1-CFRnotx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   °--no incident TB",1-progn*RR,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"°--no PT",1-PTcov,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦--incident TB",progn,0,0,0,1,0,0,0,0,0,0,0,0,0,0
+"¦   ¦--RS-ATT",CDRi*pRSATTi,0,0,0,0,1,1,0,0,0,c_dxrsatt,0,0,0,c_dxrsatt
+"¦   ¦   ¦--dies",CFRstx,1,1,1,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   °--survives",1-CFRstx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦--RR-ATT",CDRi*(1-pRSATTi),0,0,0,0,0,0,1,1,0,c_dxrratt,0,0,0,c_dxrratt
+"¦   ¦   ¦--dies",CFRrtx,1,1,1,0,0,0,0,0,0,0,0,0,0,0
+"¦   ¦   °--survives",1-CFRrtx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦   °--no ATT",(1-CDRi),0,0,0,0,0,0,0,0,0,0,0,0,0,0
+"¦       ¦--dies",CFRnotx,1,1,1,0,0,0,0,0,0,0,0,0,0,0
+"¦       °--survives",1-CFRnotx,1,0,0,0,0,0,0,0,0,0,0,0,0,0
+"°--no incident TB",1-progn,1,0,0,0,0,0,0,0,0,0,0,0,0,0

@@ -27,11 +27,12 @@ This analysis was run using R version 4.1.0 (2021-05-18).
 
 The following R packages must be available:
 
-- utility: here, glue
+- utility: here, glue, stringr
 - data manipulation: data.table, dplyr,
 - plotting: ggplot2, ggthemes, scales, ggrepel, ggpubr
 - calculations: discly, HEdtree (via devtools::install_github('petedodd/packagename'))
 - spatial strucutre (optional, since output also included): tmap, rworldmap, spdep
+- additional for cost analysis (optional, since output also included): tidyverse, viridis, readxl, httr
 
 
 The estimates of household size by index TB age/sex is based on previously published work:

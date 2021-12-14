@@ -14,6 +14,7 @@ library(ggthemes)
 library(ggpubr)
 library(ggrepel)
 library(glue)
+library(stringr)
 
 ## =================================
 ## UTILITY FUNCTIONS
@@ -119,6 +120,29 @@ cat(IV[,unique(iso3)],file=here('output/isolist.txt'),sep=', ')
 ## =================================
 ## DATA WORK
 ## =================================
+
+## === cost x country data for appendix
+KK1 <- IV[,.(cost=sum(cost),costacf=sum(costacf),
+             costtpt=sum(costtpt),costatt=sum(costatt)),
+          by=.(repn,iso3,intervention,`PT regimen`)]
+KK1 <- KK1[,.(cost=mean(cost),costacf=mean(costacf),
+             costtpt=mean(costtpt),costatt=mean(costatt)),
+          by=.(iso3,intervention,`PT regimen`)]
+KK2 <- IVb[,.(cost=sum(cost),costacf=sum(costacf),
+             costtpt=sum(costtpt),costatt=sum(costatt)),
+          by=.(repn,iso3,intervention,`PT regimen`)]
+KK2 <- KK2[,.(cost=mean(cost),costacf=mean(costacf),
+              costtpt=mean(costtpt),costatt=mean(costatt)),
+           by=.(iso3,intervention,`PT regimen`)]
+KK1[`PT regimen`=='FQ',`PT regimen`:='Lfx']
+KK <- rbind(KK1,KK2)
+KK[,`PT regimen`:=str_to_title(`PT regimen`)]
+KK[`PT regimen`=='None',`PT regimen`:='none']
+rm(KK1,KK2)
+
+setnames(KK,old=c('cost','costacf','costtpt','costatt'),
+         new=c('total','case-finding','TPT-related','ATT-related'))
+
 
 ## === rename FQR
 DX <- FRF[,.(prop=mean(fqr)),by=iso3]
@@ -521,6 +545,33 @@ GP <- ggplot(CEC[cpda>0 & iso3 %in% unique(tmp$iso3)],
 ggsave(GP,file=here('output/Sfigure_CE.png'),w=20,h=25)
 
 
+## --- supplementary figure on cost breakdown
+KKR <- KK[iso3 %in% HBC[g.hbmdr==1,iso3]]
+KKR[,total:=NULL]
+KKR <- melt(KKR,id=c('iso3','intervention','PT regimen'))
+KKR$intervention <- factor(KKR$intervention,
+                           levels=c("HHCM, no PT",
+                                    "PT to <5/HIV+",
+                                    "PT to <5/HIV+/TST+",
+                                    "PT to <15"),
+                           ordered = TRUE)
+
+
+GP <- ggplot(KKR[`PT regimen` %in% c('Lfx','none')],
+             aes(intervention,value,fill=`variable`))+
+  geom_bar(stat='identity')+
+  facet_wrap(~iso3,scales='free')+
+  scale_y_continuous(label=comma)+
+  xlab('Intervention')+ylab('Cost')+
+  theme(legend.position = 'top',
+        legend.title = element_blank(),
+        axis.text.x =element_text(angle = 45, hjust=1)
+        )
+## GP
+
+ggsave(GP,file=here('output/Sfigure_costs.png'),w=25,h=15)
+
+
 cat("==== FIGURES done =======\n")
 
 ## =================================
@@ -821,5 +872,3 @@ fwrite(Wo,file=here('output/table_HE.csv'))
 ## =====================================================
 
 cat("==== TABLES done =======\n")
-
-
