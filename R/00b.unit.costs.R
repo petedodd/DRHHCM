@@ -572,10 +572,6 @@ country_costs <- hhcm_costs %>%
   filter(unit_cost %in% HHMDR_costnames) %>% 
   select(country, iso3, who.region, resource, unit_cost, cost.m, cost.sd) %>%
   mutate(cost.m=round(as.numeric(cost.m),2), cost.sd=round(as.numeric(cost.sd),2))
-# setnames(country_costs, 'unit_cost', 'cost.parameter') 
 
-# country_costs$cost.d <- country_costs$cost.m-country_costs1$cost.m
-
-# today <- Sys.Date()
-fwrite(country_costs,file=here('outdata/country_unit_costs.csv'))
+# fwrite(country_costs,file=here('output/country_unit_costs.csv'))
 

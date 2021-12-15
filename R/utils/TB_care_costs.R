@@ -118,7 +118,7 @@ defl <- defl %>% select(`Country Name`, `Country Code`, `2010`, `2011`, `2012`, 
 # ppp <- setDT(read_csv(here('indata','ppp.csv')))
 
 un_gdp <- setDT(read_csv(here('indata', 'ungdppc.csv')))
-un_gdppp <- setDT(read_csv(here('indata', 'ungdppcpp.csv')))
+# un_gdppp <- setDT(read_csv(here('indata', 'ungdppcpp.csv')))
 tb_budget <- setDT(df_bdg)
 df_exp <- setDT(df_exp)
 
@@ -527,8 +527,9 @@ plot <- ggplot(ntp.data, aes(x = gdp, y = ntpexp))  +
   ggthemes::theme_base() +
   # ggthemes::theme_economist_white() +
   labs(x="GDP per capita (2020 US$, log scale)", y="Cost per patient treated (2020 US$, log scale)") 
-plot
-ggsave(plot=plot, filename = here('output','NTP prog costs.png'), w=10,h=5, dpi = 600)
+
+# plot
+# ggsave(plot=plot, filename = here('output','NTP prog costs.png'), w=10,h=5, dpi = 600)
 
 # Health care cost regression fitting - to be used for countries with missing opd/ipd data
 tbcst.care <- care_costs %>% select(country, g_whoregion, e_inc_ds_num, e_inc_rr_num, gdp, c.opd_dstb.m, c.opd_mdrtb.m, c.ipd_dstb.m, c.ipd_mdrtb.m) 
@@ -594,5 +595,5 @@ plot <- ggplot(care.data, aes(x = gdp, y = exp(log.cost)))  +
   labs(x="GDP per capita (2020 US$, log scale)", y="Cost per patient treated (2020 US$, log scale)") + 
   theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.4),
         text = element_text(size=14))
-plot
-ggsave(plot=plot, filename = here('output','TB care costs1.png'), w=10,h=5, dpi = 600)
+# plot
+# ggsave(plot=plot, filename = here('output','TB care costs1.png'), w=10,h=5, dpi = 600)
