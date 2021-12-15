@@ -598,6 +598,15 @@ GP <- ggplot(tmp,
 
 ggsave(GP,file=here('output/Sfigure_cost_explore.png'),w=10,h=10)
 
+## look at unit costs
+C0 <- fread(here('output/country_unit_costs.csv'))
+CM <- C0[,.(cost.m=mean(cost.m),cost.me=median(cost.m)),by=unit_cost]
+Codd <- C0[iso3 %in% oddcs,.(iso3,unit_cost,cost.m)]
+Codd <- dcast(Codd,unit_cost ~ iso3,value.var = 'cost.m')
+CM <- merge(CM,Codd,by='unit_cost')
+names(CM)[2:3] <- c('mean','median')
+fwrite(CM,file=here('output/tmp_uc.csv'))
+
 
 cat("==== FIGURES done =======\n")
 
