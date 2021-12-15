@@ -1,4 +1,4 @@
-rm(list = ls())
+## rm(list = ls())
 library(here)
 library(tidyverse)
 library(data.table)
@@ -13,7 +13,7 @@ library(httr)
 # Expenditure and utilization of health services for TB since fiscal year 2017 
 if(!file.exists(here::here('indata/df_exp.Rdata'))){
   df_exp<- fread("https://extranet.who.int/tme/generateCSV.asp?ds=expenditure_utilisation", header = T)
-  save(df_exp,file=here::here('indata/df_exp'))
+  save(df_exp,file=here::here('indata/df_exp.Rdata'))
 } else {
   load(here::here('indata/df_exp.Rdata'))
 }
@@ -23,7 +23,7 @@ if(!file.exists(here::here('indata/df_bdg.Rdata'))){
   df_bdg<- fread("https://extranet.who.int/tme/generateCSV.asp?ds=budget", header = T)
   save(df_bdg,file=here::here('indata/df_bdg'))
 } else {
-  load(here::here('indata/df_bdg'))
+  load(here::here('indata/df_bdg.Rdata'))
 }
 
 # Estimated number of incident cases (all forms) 
@@ -157,7 +157,6 @@ gdp <- gdp %>% filter(!`Country Name` %in%
 # Changing some country names to match the WHO TB data and ISO codes #
 
 gdp$`Country Name` <- (plyr::mapvalues((gdp$`Country Name`), from = c("Bahamas, The","Bolivia","Congo, Dem. Rep.", "Congo, Rep.","Cote d'Ivoire","Curacao","Czech Republic","Egypt, Arab Rep.","Gambia, The","Hong Kong SAR, China","Iran, Islamic Rep.","Korea, Dem. People’s Rep.","Korea, Rep.","Kyrgyz Republic","Lao PDR","Macao SAR, China","Micronesia, Fed. Sts.","Moldova","Slovak Republic","St. Kitts and Nevis","St. Lucia","St. Vincent and the Grenadines", "Tanzania","United Kingdom","United States","Venezuela, RB","Vietnam","West Bank and Gaza","Yemen, Rep.")
-  
   , to = c("Bahamas","Bolivia (Plurinational State of)","China, Hong Kong SAR","China, Macao SAR","Congo","CÃ´te d'Ivoire","CuraÃ§ao", "Czechia","Democratic People's Republic of Korea","Democratic Republic of the Congo" ,"Egypt","Gambia","Iran (Islamic Republic of)","Kyrgyzstan","Lao People's Democratic Republic" ,"Micronesia (Federated States of)","occupied Palestinian territory, including east Jerusalem", "Republic of Korea","Republic of Moldova","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Slovakia","United Kingdom of Great Britain and Northern Ireland","United Republic of Tanzania","United States of America","Venezuela (Bolivarian Republic of)","Viet Nam","Yemen")
 ))
 

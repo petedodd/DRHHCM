@@ -5,6 +5,7 @@ library(ggthemes)
 
 ## source other file:  NTP, inpatient, outpatient costs
 source(here('R/utils/TB_care_costs.R'))
+
 ## Other unit costs from relevant public sources:
 unit_costs <- fread(here('indata',
                          'other_public_unit_costs.csv'))
@@ -18,7 +19,21 @@ HHMDR_costnames <- c('c_hh_visit', 'c_hiv_test', 'c_tst_test', 'c_opd_visit', 'c
 costs <- c('c_hh_visit', 'c_hiv_test', 'c_tst_test', 'c_opd_visit', 'c_cxr_exam', 'c.qft.plus', 'c.ess.collection', 'c.iss.collection', 'c.sample.transport.shared','c.sample.transport.exclusive', 'c.xpert', 'c.lft', 'c.cbc','c_xpert_test.04','c_xpert_test.514','c_tpt_INH.04','c_tpt_INH.514', 'c_tpt_LVX.04', 'c_tpt_LVX.514','c_tpt_MXF.04','c_tpt_MXF.514','c_tpt_BDQ.04', 'c_tpt_BDQ.514','c_tpt_DLM.04', 'c_tpt_DLM.514','c_tpt_fu', 'c_monit_INH', 'c_monit_FQ', 'c_monit_BDQ','c_aes_INH','c_aes_FQ','c_aes_BDQ','c_saes_INH','c_saes_FQ','c_saes_BDQ','c_dstb_tx','c_mdrtb_tx1.04','c_mdrtb_tx2.04','c_mdrtb_tx1.514','c_mdrtb_tx2.514')
 
 # model cost parameter definitions
-description <- c('Household visit', 'HIV test', 'Tuberculin skin test', 'Outpatient visit', 'Chest X-ray', 'QuantiFERON-TB Gold test', 'Expectoration sputum collection', 'Induced sputum collection', 'Shared sample transportion','Exclusive sample transportion', 'Xpert MTB/RIF test', 'Liver function tests', 'Complete blood count','Xpert MTB/RIF test (0-4 years)','Xpert MTB/RIF test (5-14 years)','Isoniazid-based TPT (0-4 years)','Isoniazid-based TPT (5-14 years)', 'Levefloxacin-based TPT (0-4 years)', 'Levefloxacin-based TPT (5-14 years)','Moxifloxacin-based TPT (0-4 years)','Moxifloxacin-based TPT (5-14 years)','Bedaquiline-based TPT (0-4 years)', 'Bedaquiline-based TPT (5-14 years)','Delamanid-based TPT (0-4 years)', 'Delamanid-based TPT (5-14 years)','TPT follow-up', 'Isoniazid-based TPT monitoring', 'Fluoroquinolone-based TPT monitoring', 'Bedaquiline-based TPT monitoring','Isoniazid-based TPT adverse events treatment','Fluoroquinolone-based TPT adverse events treatment','Bedaquiline-based TPT adverse events treatment','Isoniazid-based TPT serious adverse events treatment','Fluoroquinolone-based TPT serious adverse events treatment','Bedaquiline-based TPT serious adverse events treatment','Treatment for drug sensitive TB','Treatment for fluoroquinolone resistant multi-drug resistant TB (0-4 years)','Treatment for fluoroquinolone susceptible multi-drug resistant TB (0-4 years)','Treatment for fluoroquinolone resistant multi-drug resistant TB (5-15 years)','Treatment for fluoroquinolone susceptible multi-drug resistant TB (5-15 years)')
+description <- c('Household visit', 'HIV test', 'Tuberculin skin test', 'Outpatient visit', 'Chest X-ray', 'QuantiFERON-TB Gold test',
+                 'Expectoration sputum collection', 'Induced sputum collection', 'Shared sample transportion','Exclusive sample transportion',
+                 'Xpert MTB/RIF test', 'Liver function tests', 'Complete blood count','Xpert MTB/RIF test (0-4 years)',
+                 'Xpert MTB/RIF test (5-14 years)','Isoniazid-based TPT (0-4 years)','Isoniazid-based TPT (5-14 years)',
+                 'Levefloxacin-based TPT (0-4 years)', 'Levefloxacin-based TPT (5-14 years)','Moxifloxacin-based TPT (0-4 years)',
+                 'Moxifloxacin-based TPT (5-14 years)','Bedaquiline-based TPT (0-4 years)', 'Bedaquiline-based TPT (5-14 years)',
+                 'Delamanid-based TPT (0-4 years)', 'Delamanid-based TPT (5-14 years)','TPT follow-up', 'Isoniazid-based TPT monitoring',
+                 'Fluoroquinolone-based TPT monitoring', 'Bedaquiline-based TPT monitoring','Isoniazid-based TPT adverse events treatment',
+                 'Fluoroquinolone-based TPT adverse events treatment','Bedaquiline-based TPT adverse events treatment',
+                 'Isoniazid-based TPT serious adverse events treatment','Fluoroquinolone-based TPT serious adverse events treatment',
+                 'Bedaquiline-based TPT serious adverse events treatment','Treatment for drug sensitive TB',
+                 'Treatment for fluoroquinolone resistant multi-drug resistant TB (0-4 years)',
+                 'Treatment for fluoroquinolone susceptible multi-drug resistant TB (0-4 years)',
+                 'Treatment for fluoroquinolone resistant multi-drug resistant TB (5-15 years)',
+                 'Treatment for fluoroquinolone susceptible multi-drug resistant TB (5-15 years)')
 
 country <- unique(tb_exp$country[!is.na(tb_exp$country)])
 
@@ -573,5 +588,6 @@ country_costs <- hhcm_costs %>%
   select(country, iso3, who.region, resource, unit_cost, cost.m, cost.sd) %>%
   mutate(cost.m=round(as.numeric(cost.m),2), cost.sd=round(as.numeric(cost.sd),2))
 
-# fwrite(country_costs,file=here('output/country_unit_costs.csv'))
+## NOTE uncomment below to save data
+## fwrite(country_costs,file=here('output/country_unit_costs.csv')) 
 
