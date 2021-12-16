@@ -238,6 +238,8 @@ pfact$newn <- rowSums(D[,..nmz])
 pfact[,pfac:=newn/rawn]
 pfact[!is.finite(pfac),pfac:=1]
 
+save(pfact,file=here('data/pfact.Rdata')) #load parent data - from above
+
 ## --- restrict
 D <- D[,.(iso3,country,g_whoregion,
           n_m_0_4,n_m_5_14,n_m_15_24,n_m_25_34,n_m_35_44,n_m_45_54,
@@ -255,6 +257,7 @@ save(D,file=here('data/D.Rdata'))
 ## could restart here
 rm(list=ls())
 load(here('data/D.Rdata'))     #load parent data - from above
+load(here('data/pfact.Rdata')) #load parent data - from above
 load(here('indata/U5.Rdata'))  #load HH size predictions - prev work
 load(here('indata/O5.Rdata'))  #load HH size predictions - prev work
 
