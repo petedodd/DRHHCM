@@ -59,9 +59,9 @@ PSO[,cab:=cdr514ab]
 PSO[,acat:="[5,15)"]                     #age group
 
 
-## add uncertainty in HHC: log normal approximation
-PSA[,u5hhc:=rlnorm(nrow(PSA),u5hhc.l,u5hhc.sdl)]
-PSO[,o5hhc:=rlnorm(nrow(PSO),o5hhc.l,o5hhc.sdl)]
+## add uncertainty in HHC: log normal approximation, including pulmonary SA factor
+PSA[,u5hhc:=pfac*rlnorm(nrow(PSA),u5hhc.l,u5hhc.sdl)]
+PSO[,o5hhc:=pfac*rlnorm(nrow(PSO),o5hhc.l,o5hhc.sdl)]
 
 
 ## join these after harmonizing names

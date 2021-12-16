@@ -7,7 +7,7 @@ library(data.table)
 library(ggplot2)
 
 ## are we doing a sensitivity analysis including pulmonary fraction
-pulmsa <- (scan(here('indata/pulmonary.sensitivity.analysis.txt'))>0)
+(pulmsa <- (scan(here('indata/pulmonary.sensitivity.analysis.txt'))>0))
 
 ## ================ initial data pooling ===========
 
@@ -226,12 +226,17 @@ nmz <- gsub("p","",nmzp)
 D <- merge(D,NPRW,by='iso3',all.x = TRUE,all.y=FALSE) #join in
 D[,c(nmz):=lapply(.SD,as.numeric),.SDcols=nmz] #make numeric from int
 ## only apply the pulmonary props as a SA
+print(sum(D[,..nmz])/1e6)
+pfact <- data.table(iso3=D[,iso3],rawn=rowSums(D[,..nmz])) #pulmonary correction factor
 if(pulmsa){
+  cat("============ RUNNING PULMONARY SENSITIVITY ANALYSIS ===========\n")
   for(nm in nmz) # multiply by corresponding pulmonary factor
     D[,c(nm):=D[,nm,with=FALSE] * D[,paste0('p',nm),with=FALSE]]
 }
 D[,c(nmzp):=NULL]                       #ditch the pulmonary props
-
+pfact$newn <- rowSums(D[,..nmz])
+pfact[,pfac:=newn/rawn]
+pfact[!is.finite(pfac),pfac:=1]
 
 ## --- restrict
 D <- D[,.(iso3,country,g_whoregion,
@@ -241,6 +246,8 @@ D <- D[,.(iso3,country,g_whoregion,
           n_f_55_64,n_f_65_Inf,
           cdr04,cdr04ab,cdr514,cdr514ab)]
 D
+
+print(sum(D[,..nmz])/1e6)
 
 save(D,file=here('data/D.Rdata'))
 
@@ -330,7 +337,7 @@ load(here('data/DL.Rdata'))
 
 ## making notifications proportions
 DL[,totv:=sum(value),by=iso3]
-DL[,value:=value / (totv+1e-7)]
+DL[,value:=value / (totv+1e-7)] #pattern
 DL[iso3=='ZAF']
 DL[iso3=='ZAF',sum(value)]
 DL[,c('variable','totv'):=NULL]
@@ -384,6 +391,8 @@ chhc <- chhc[,.(u5hhc=mean(phh),u5hhc.sd=sd(phh),
 
 ## merge to make parent data table for PSA
 DLC <- merge(DLC,chhc,by='iso3')
+DLC <- merge(DLC,pfact[,.(iso3,pfac)],by='iso3')
+
 save(DLC,file=here('data/DLC.Rdata'))
 
 ## ====== same but for 5-15
@@ -428,4 +437,6 @@ ohhc <- ohhc[,.(o5hhc=mean(phh),o5hhc.sd=sd(phh),
 
 
 DLO <- merge(DLO,ohhc,by='iso3')
+DLO <- merge(DLO,pfact[,.(iso3,pfac)],by='iso3')
+
 save(DLO,file=here('data/DLO.Rdata'))
