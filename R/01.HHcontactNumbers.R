@@ -7,7 +7,7 @@ library(data.table)
 library(ggplot2)
 
 ## are we doing a sensitivity analysis including pulmonary fraction
-pulmsa <- (scan(here('indata/pulmonary.sensitivity.analysis.txt'))>1)
+pulmsa <- (scan(here('indata/pulmonary.sensitivity.analysis.txt'))>0)
 
 ## ================ initial data pooling ===========
 

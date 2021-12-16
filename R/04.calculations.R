@@ -10,7 +10,7 @@ source(here('R/utils/ModelFuns.R'))     #parametrization & tree labeller
 load(here('data/PSA.Rdata'))
 PSA[,value:=rrmdr_15plus_tx] #index cases
 
-restrictno <- 100  #NOTE make smaller eg 100 for laptop testing
+restrictno <- 1000  #NOTE make smaller eg 100 for laptop testing
 print(object.size(PSA),units='auto')
 PSA <- PSA[repn<=restrictno]
 
