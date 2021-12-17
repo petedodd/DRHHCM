@@ -211,6 +211,7 @@ resultnoHIV <- function(D){
 }
 
 ## === No HHCM
+cat('=== (baseline: no HHCM)\n')
 ## apply functions to tree (from maketree.R)
 PSA[,PTcov:=0.0]
 setCosts(PSA,intervention='No HHCM',regimen="None")

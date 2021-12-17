@@ -1,13 +1,13 @@
 intervention,PT regimen,quantity,variable,value
-PT to <5/HIV+,INH,Incident TB,Preventive therapy courses,23.3108463318808
-PT to <15,INH,Incident TB,Preventive therapy courses,27.725159105706
-PT to <5/HIV+/TST+,INH,Incident TB,Preventive therapy courses,23.3178082434203
-PT to <5/HIV+,INH,Death,Preventive therapy courses,30.6607169768893
-PT to <15,INH,Death,Preventive therapy courses,57.9572394558131
-PT to <5/HIV+/TST+,INH,Death,Preventive therapy courses,44.8437383970453
-PT to <5/HIV+,INH,Incident TB,Household contacts screened,50.2693708432488
-PT to <15,INH,Incident TB,Household contacts screened,30.0974641415324
-PT to <5/HIV+/TST+,INH,Incident TB,Household contacts screened,33.0755032389777
-PT to <5/HIV+,INH,Death,Household contacts screened,66.1128658752408
-PT to <15,INH,Death,Household contacts screened,62.9141118570587
-PT to <5/HIV+/TST+,INH,Death,Household contacts screened,63.6011514846037
+PT to <5/HIV+,INH,Incident TB,Preventive therapy courses,23.2143478025352
+PT to <15,INH,Incident TB,Preventive therapy courses,29.431074626674
+PT to <5/HIV+/TST+,INH,Incident TB,Preventive therapy courses,23.2428243763495
+PT to <5/HIV+,INH,Death,Preventive therapy courses,28.2627705354086
+PT to <15,INH,Death,Preventive therapy courses,76.4660714518496
+PT to <5/HIV+/TST+,INH,Death,Preventive therapy courses,53.7076292812922
+PT to <5/HIV+,INH,Incident TB,Household contacts screened,74.1183082137085
+PT to <15,INH,Incident TB,Household contacts screened,31.9483741899866
+PT to <5/HIV+/TST+,INH,Incident TB,Household contacts screened,36.5827275216911
+PT to <5/HIV+,INH,Death,Household contacts screened,90.20455497088
+PT to <15,INH,Death,Household contacts screened,83.0024100234691
+PT to <5/HIV+/TST+,INH,Death,Household contacts screened,84.5035167322676
