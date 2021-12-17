@@ -8,7 +8,9 @@ source(here('R/utils/ModelFuns.R'))     #parametrization & tree labeller
 
 ## data from previous analyses
 load(here('data/PSA.Rdata'))
-PSA[,value:=rrmdr_15plus_tx] #index cases
+## PSA[,value:=rrmdr_15plus_tx] #index cases
+PSA[,value:=rrmdr_15plus_tx*hhc] #index cases
+PSA[repn==1,sum(value)]/1e3      #number of hhcs
 
 restrictno <- 1000  #NOTE make smaller eg 100 for laptop testing
 print(object.size(PSA),units='auto')
@@ -34,20 +36,19 @@ cat(miss,file=here('output/costs_missing_iso3.txt'))
 
 PSA <- merge(PSA,C2,by=c('iso3','repn')) #merge in cost data
 PSA[iso3=='ZAF' & repn==1 & acat=='[0,5)'] #HIV//ART absent
-PSA[repn==1,sum(value)/1e5]   #check
-PSA[,summary(hhc)]
+PSA[repn==1,sum(value)/1e2]   #check
 
 ## add DR
 PSA <- splitbyDRtypes(PSA) #split by DR
 PSA[iso3=='ZAF' & repn==1 & acat=='[0,5)']
 PSA[iso3=='ZAF' & repn==1 & acat=='[0,5)',sum(value)]
-PSA[repn==1,sum(value)/1e5]   #check
+PSA[repn==1,sum(value)/1e3]   #check
 
 ## add HIV
 PSA <- splitbyHIV(PSA)   #add HIV
 PSA[iso3=='ZAF' & repn==1 & acat=='[0,5)']
 PSA[iso3=='ZAF' & repn==1 & acat=='[0,5)',sum(value)]
-PSA[repn==1,sum(value)/1e5]   #check
+PSA[repn==1,sum(value)/1e3]   #check
 
 ## test
 ## check
@@ -184,6 +185,8 @@ setCosts <- function(D, #data
   }
 }
 
+
+
 ## ====== BASECASE
 tosave <-  c('iso3','repn','acat','DST',
              'deaths','incdeaths','inctb','rsatt','rratt',
@@ -218,6 +221,7 @@ I0[,intervention:='No HHCM']; I0[,`PT regimen`:='none']; I0[,hhc:=0.0]
 ## checks
 PSA[,summary(progn)]
 PSA[,summary(coprev)]
+I0[,sum(hhc)/1e3]
 
 
 ## ====== INTERVENTIONS
@@ -338,14 +342,13 @@ I3Bb[,intervention:='PT to <5/HIV+/TST+'];I3Bb[,`PT regimen`:='DLM']
 cat('=== test with all RS\n')
 ## data from previous analyses
 load(here('data/PSA.Rdata')); cat('reloading PSA for safety!\n')
-PSA[,value:=rrmdr_15plus_tx]
+PSA[,value:=rrmdr_15plus_tx*hhc] #index cases
 PSA <- PSA[repn<=restrictno] #NOTE make smaller for laptop testing
 PSA <- splitbyDRtypes(PSA) #split by DR
 PSA <- splitbyHIV(PSA)   #add HIV
 PSA <- merge(PSA,WBIL,by='iso3',all.x = TRUE,all.y=FALSE)
 PSA[is.na(hinc),unique(iso3)] #a few missing
 PSA[is.na(hinc),hinc:=FALSE]  #not high-income by hand
-
 PSA[acat=='[0,5)',age:=1.0]; PSA[acat=='[5,15)',age:=10.0] # a bit hacky
 PSA[,DST:='RS']   #overwrites and makes everything RS NOTE needed before add variables 
 addVariables(PSA)                #NOTE return by side-effect
@@ -409,6 +412,7 @@ TI3H[,intervention:='PT to <5/HIV+/TST+'];TI3H[,`PT regimen`:='INH'];
 cat('------------- Data made! -----------\n')
 cat('saving out...\n')
 
+
 ## ## TIDY AND SAVE
 ## rm(PSA)
 
@@ -434,8 +438,9 @@ IV                                      #memory hungry
 nrow(IV)/1e6
 names(IV)
 
-
+## check
 IV[iso3=='ZAF' & repn==1 & acat=='[0,5)' & intervention=='PT to <15']
+IV[repn==1 & intervention=='PT to <15',sum(hhc)/2e3]
 
 save(IV,file=here('data/IV.Rdata')) # NOTE this is biggish
 

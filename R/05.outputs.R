@@ -336,10 +336,10 @@ TMR$intervention <- factor(TMR$intervention,
                            ordered = TRUE)
 
 ## benchmarks/checks
-IVT[,.(inCFR=1e2*sum(incdeaths)/sum(inctb), # ~ 15%
-       inCDR=1e2*sum(rsatti)/sum(inctb),    # ~ 56%
-       hhinc=1e2*sum(inctb)/sum(hhc),       # ~ 2.5%
-       hhdeaths=1e2*sum(deaths)/sum(hhc))]  # ~ 0.5%
+IVT[,.(inCFR=1e2*sum(incdeaths)/sum(inctb),
+       inCDR=1e2*sum(rsatti)/sum(inctb),
+       hhinc=1e2*sum(inctb)/sum(hhc),
+       hhdeaths=1e2*sum(deaths)/sum(hhc))]
 
 
 ## =================================
