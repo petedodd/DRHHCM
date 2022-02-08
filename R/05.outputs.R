@@ -103,7 +103,8 @@ load(here('data/IVT.Rdata'))
 load(here('indata/FRF.Rdata'))
 load(here('indata/GDP.Rdata'))
 WK <- fread(here('indata/TB_notifications_2020-10-15.csv'))
-WK <- unique(WK[,.(iso3,g_whoregion)])  #key!
+WK <- unique(WK[,.(iso3,g_whoregion,country)])  #key!
+setkey(WK,iso3)
 load(here('indata/HBC.Rdata'))          #HBC lists
 WB <- fread(here('indata/WBIL.csv'))    #income
 
@@ -501,11 +502,60 @@ GP <- ggplot(CECR,
   ylab('Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)')+
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.8,0.2))
-## GP
+GP
 
 ## NOTE seems to want to be run interactively?
 ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)
 ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
+
+
+## new version under review
+inmz <- c("Household contact management, no tuberculosis preventive therapy",
+          "Tuberculosis preventive therapy for children with HIV or under 5",
+          "Tuberculosis preventive therapy for children with HIV, a positive tuberculin skin test, or under 5",
+          "Tuberculosis preventive therapy for all children under 15"
+          )
+CECR[intervention2=="HHCM, no TPT",intervention3:=inmz[1]]
+CECR[intervention2=="TPT to <5/HIV+",intervention3:=inmz[2]]
+CECR[intervention2=="TPT to <5/HIV+/TST+",intervention3:=inmz[3]]
+CECR[intervention2=="TPT to <15",intervention3:=inmz[4]]
+CECR[,ptreg:="None"]
+CECR[`PT regimen`=="Lfx",ptreg:="Levofloxacin"]
+CECR[`PT regimen`=="Dlm",ptreg:="Delamanid"]
+tmp[,c('intervention3','ptreg'):=NA]
+colz2 <- c('None'="#56B4E9",'Levofloxacin'="#000000",'Delamanid'="#E69F00")
+shpz2 <- shpz
+names(shpz2) <- inmz
+clbz <- WK[lvls,country] #full country names
+
+
+
+## make plot
+GP <- ggplot(CECR,
+             aes(iso3,cpda,
+                 shape=intervention3,
+                 group=iso3,
+                 col=ptreg))+
+  geom_line(data=tmp,aes(x=iso3,y=gdp/1,group=1),col='darkgrey')+
+  geom_line(data=tmp,aes(x=iso3,y=gdp/2,group=1),lty=2,col='darkgrey')+
+  geom_point(size=3) +
+  scale_x_discrete(labels=clbz)+
+  scale_shape_manual(values=shpz2,name='Intervention')+
+  scale_color_manual(values=colz2,name='Tuberculosis preventive therapy regimen')+
+  annotate(geom='text',y=tp*0.8,x=19,label='1.0xGDP')+
+  annotate(geom='text',y=tp*0.8,x=25,label='0.5xGDP')+
+  coord_flip()+
+  scale_y_continuous(label=absspace,limits=c(0,tp))+
+  xlab('')+
+  ylab('Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)')+
+  theme_classic()+ggpubr::grids()+
+  theme(legend.position=c(0.65,0.2))
+## GP
+
+## NOTE seems to want to be run interactively?
+ggsave(GP,file=here('output/figure_CE2.pdf'),w=10,h=10)
+ggsave(GP,file=here('output/figure_CE2.eps'),w=10,h=10)
+ggsave(GP,file=here('output/figure_CE2.jpg'),w=10,h=10)
 
 
 ## --- supplementary figure CEACs
