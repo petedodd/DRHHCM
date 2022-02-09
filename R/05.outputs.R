@@ -27,7 +27,7 @@ lo <- function(x) quantile(x,.025)
 hi <- function(x) quantile(x,.975)
 tv <- function(x) tableHTML::tableHTML(x) #looking at tables
 fmean <- function(x) mean(x[is.finite(x)]) #a mean for finite (no NA or Inf)
-
+gh <- function(x) glue(here(x))
 
 seehere <- function(x) paste0(see(mean(x)),
                               " (",see(lo(x))," - ",
@@ -91,7 +91,9 @@ cat("==== DATA preparation =======\n")
 
 ## load or create LYs
 source(here('R/utils/makeLYs.R'))
-LY <- LYD[dr==3] #choosing discount rate
+## NOTE discount rate sensitivity analses set here!
+drv <- 3; drx <- ifelse(drv==1,'1',ifelse(drv==5,'5',''))
+LY <- LYD[dr==drv] #choosing discount rate
 LY <- melt(LY[,.(iso3,`[0,5)`=u5,`[5,15)`=o5)],id='iso3')
 LY <- LY[,.(iso3,acat=variable,lys=value)] #rename
 
@@ -347,114 +349,118 @@ IVT[,.(inCFR=1e2*sum(incdeaths)/sum(inctb),
 ## FIGURES
 ## =================================
 cat("==== doing FIGURES =======\n")
+
 colz2 <- c('Bdq/Dlm'="#E69F00",'Fq'="#000000")
 
-## also save data
-fwrite(BMR[,.(intervention,`PT regimen`,quantity,variable,value)],
-       file=here('output/etable_NN.csv'))
+if(drx==""){ #begin SA exclusion
 
-## === figure_NN
-GP <- ggplot(BMR,aes(intervention2,value,fill=`PT regimen`)) +
-  geom_bar(stat='identity',position='dodge') +
-  facet_grid(variable ~ quantity ,scales='free') +
-  scale_fill_manual(values=colz2,name='TPT regimen')+
-  xlab('Intervention')+
-  ylab('Additional resource (row) per quantity averted (column)') +
-  pnlth
-## GP
+  ## also save data
+  fwrite(BMR[,.(intervention,`PT regimen`,quantity,variable,value)],
+         file=here('output/etable_NN.csv'))
 
-ggsave(GP,file=here('output/figure_NN.eps'),w=6,h=7)
-ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
+  ## === figure_NN
+  GP <- ggplot(BMR,aes(intervention2,value,fill=`PT regimen`)) +
+    geom_bar(stat='identity',position='dodge') +
+    facet_grid(variable ~ quantity ,scales='free') +
+    scale_fill_manual(values=colz2,name='TPT regimen')+
+    xlab('Intervention')+
+    ylab('Additional resource (row) per quantity averted (column)') +
+    pnlth
+  ## GP
 
-
-## --- all RS version
-## also save data
-fwrite(TMR,
-       file=here('output/etable_RSNN.csv'))
-
-## graph
-GP <- ggplot(TMR,aes(intervention,value)) +
-  geom_bar(stat='identity',position='dodge') +
-  geom_text(aes(label=ceiling(value)),vjust=-.1,col=2)+
-  facet_grid(variable ~ quantity ,scales='free') +
-  xlab('Intervention')+
-  ylab('Additional resource (row) per quantity averted (column)') +
-  pnlth
-## GP
-
-ggsave(GP,file=here('output/Sfigure_NNRS.png'),w=6,h=7)
+  ggsave(GP,file=here('output/figure_NN.eps'),w=6,h=7)
+  ggsave(GP,file=here('output/figure_NN.png'),w=6,h=7)
 
 
-## === figure_FQR
-## checking countries etc
-tmp <- ICM1[`PT regimen`!='INH' & intervention=='PT to <15']
-tmp[,lbl:=as.character(iso3)]
-tmp[`PT regimen`!='FQ',lbl:=NA]
-tmp[,region:=g_whoregion]
-tmp <- merge(tmp,WB[,.(iso3,hic=(income=='High income'))],by='iso3')
-tmp <- tmp[hic!=TRUE] #strip out high income countries
-tmp <- tmp[ptc>0]     #the zeros are pacific islands with 0 across the board
-tmp[`PT regimen`!='FQ',`PT regimen`:='Bdq/Dlm']
+  ## --- all RS version
+  ## also save data
+  fwrite(TMR,
+         file=here('output/etable_RSNN.csv'))
 
-## face validity checks
-GPd <- ggplot(tmp,
-              aes(prop,ptc,col=region,shape=`PT regimen`)) +
-  geom_point() +
-  scale_x_continuous(label=percent) +
-  guides(shape='none')+
-  scale_color_colorblind(position='top')+ 
-  xlab('Proportion of RR/MDR in children that is FQR')+
-  ylab('PT courses to prevent a TB case')+
-  expand_limits(y=0) +
-  geom_text_repel(aes(label=lbl))+
-  theme_classic() + ggpubr::grids()+
-  theme(legend.position = c(0.2,0.8))+
-  guides(colour = guide_legend(nrow = 1))
-## GPd
+  ## graph
+  GP <- ggplot(TMR,aes(intervention,value)) +
+    geom_bar(stat='identity',position='dodge') +
+    geom_text(aes(label=ceiling(value)),vjust=-.1,col=2)+
+    facet_grid(variable ~ quantity ,scales='free') +
+    xlab('Intervention')+
+    ylab('Additional resource (row) per quantity averted (column)') +
+    pnlth
+  ## GP
 
-ggsave(GPd,file=here('output/figure.labelled.FQRscatter.pdf'),w=18,h=15)
+  ggsave(GP,file=here('output/Sfigure_NNRS.png'),w=6,h=7)
 
-## -- panel a
-## plot
-GPa <- ggplot(tmp,
-              aes(prop,ptc,col=`PT regimen`,shape=intervention)) +
-  geom_point() +
-  scale_x_continuous(label=percent) +
-  guides(shape='none')+
-  scale_color_manual(values=colz2,name='TPT regimen')+
-  xlab('Proportion of RR/MDR-TB that is fluoroquinolone-resistant')+
-  ylab('TPT courses to prevent one occurrence of tuberculosis')+
-  geom_smooth(method='lm')+
-  expand_limits(y=0) +
-  ggpubr::stat_cor(show.legend = FALSE)+
-  theme_classic() + ggpubr::grids()
-## GPa
 
-## -- panel b
+  ## === figure_FQR
+  ## checking countries etc
+  tmp <- ICM1[`PT regimen`!='INH' & intervention=='PT to <15']
+  tmp[,lbl:=as.character(iso3)]
+  tmp[`PT regimen`!='FQ',lbl:=NA]
+  tmp[,region:=g_whoregion]
+  tmp <- merge(tmp,WB[,.(iso3,hic=(income=='High income'))],by='iso3')
+  tmp <- tmp[hic!=TRUE] #strip out high income countries
+  tmp <- tmp[ptc>0]     #the zeros are pacific islands with 0 across the board
+  tmp[`PT regimen`!='FQ',`PT regimen`:='Bdq/Dlm']
 
-## reshape & aggregate
-tmp2 <- dcast(tmp,iso3+g_whoregion ~ `PT regimen`,value.var = 'ptc')
-tmp2[,df:=FQ-`Bdq/Dlm`]
-tmp2 <- tmp2[,.(df=median(df,na.rm=TRUE)),by=.(g_whoregion)]
-tmp2 <- tmp2[order(as.character(g_whoregion))]
-tmp2[,region:=g_whoregion]
-tmp2$region <- factor(tmp2$region,levels=unique(tmp2$region),
-                      ordered=TRUE)
+  ## face validity checks
+  GPd <- ggplot(tmp,
+                aes(prop,ptc,col=region,shape=`PT regimen`)) +
+    geom_point() +
+    scale_x_continuous(label=percent) +
+    guides(shape='none')+
+    scale_color_colorblind(position='top')+ 
+    xlab('Proportion of RR/MDR in children that is FQR')+
+    ylab('PT courses to prevent a TB case')+
+    expand_limits(y=0) +
+    geom_text_repel(aes(label=lbl))+
+    theme_classic() + ggpubr::grids()+
+    theme(legend.position = c(0.2,0.8))+
+    guides(colour = guide_legend(nrow = 1))
+  ## GPd
 
-## plot
-GPb <- ggplot(tmp2,aes(region,df)) +
+  ggsave(GPd,file=here('output/figure.labelled.FQRscatter.pdf'),w=18,h=15)
+
+  ## -- panel a
+  ## plot
+  GPa <- ggplot(tmp,
+                aes(prop,ptc,col=`PT regimen`,shape=intervention)) +
+    geom_point() +
+    scale_x_continuous(label=percent) +
+    guides(shape='none')+
+    scale_color_manual(values=colz2,name='TPT regimen')+
+    xlab('Proportion of RR/MDR-TB that is fluoroquinolone-resistant')+
+    ylab('TPT courses to prevent one occurrence of tuberculosis')+
+    geom_smooth(method='lm')+
+    expand_limits(y=0) +
+    ggpubr::stat_cor(show.legend = FALSE)+
+    theme_classic() + ggpubr::grids()
+  ## GPa
+
+  ## -- panel b
+
+  ## reshape & aggregate
+  tmp2 <- dcast(tmp,iso3+g_whoregion ~ `PT regimen`,value.var = 'ptc')
+  tmp2[,df:=FQ-`Bdq/Dlm`]
+  tmp2 <- tmp2[,.(df=median(df,na.rm=TRUE)),by=.(g_whoregion)]
+  tmp2 <- tmp2[order(as.character(g_whoregion))]
+  tmp2[,region:=g_whoregion]
+  tmp2$region <- factor(tmp2$region,levels=unique(tmp2$region),
+                        ordered=TRUE)
+
+  ## plot
+  GPb <- ggplot(tmp2,aes(region,df)) +
     geom_bar(stat='identity') +
     xlab('WHO region') +
-  ylab('Median difference in TPT courses per\n occurrence of tuberculosis prevented')+
+    ylab('Median difference in TPT courses per\n occurrence of tuberculosis prevented')+
     theme_classic() + ggpubr::grids()
-## GPb
+  ## GPb
 
-## combine
-GPB <- ggarrange(GPa,GPb,nrow=1,labels=c('A','B'))
+  ## combine
+  GPB <- ggarrange(GPa,GPb,nrow=1,labels=c('A','B'))
 
-ggsave(GPB,file=here('output/figure_FQR.eps'),w=12,h=5)
-ggsave(GPB,file=here('output/figure_FQR.png'),w=12,h=5)
+  ggsave(GPB,file=here('output/figure_FQR.eps'),w=12,h=5)
+  ggsave(GPB,file=here('output/figure_FQR.png'),w=12,h=5)
 
+} #end SA exclusion
 
 ## === figure_CE
 ## restrict to hbmdr
@@ -481,6 +487,9 @@ shpz <- c("HHCM, no TPT"=1,"TPT to <5/HIV+"=2,
 shps <- c("HHCM, no PT"=1,"PT to <5/HIV+"=2,
           "PT to <5/HIV+/TST+"=3,"PT to <15"=4)
 
+xlb <- 'Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)'
+if(drx!="")
+  xlb <- glue('Incremental cost-effectiveness ratio\n(USD per {drx}%-discounted DALY averted)')
 
 ## make plot
 tp <- 5e3
@@ -499,14 +508,15 @@ GP <- ggplot(CECR,
   coord_flip()+
   scale_y_continuous(label=absspace,limits=c(0,tp))+
   xlab('Country ISO3 code')+
-  ylab('Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)')+
+  ylab(xlb)+
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.8,0.2))
 GP
 
 ## NOTE seems to want to be run interactively?
-ggsave(GP,file=here('output/figure_CE.eps'),w=10,h=10)
-ggsave(GP,file=here('output/figure_CE.jpg'),w=10,h=10)
+## ggsave(GP,file=gh('output/figure_iCE{drx}.eps'),w=10,h=10)
+ggsave(GP,file=gh('output/figure_iCE{drx}.jpg'),w=10,h=10)
+
 
 
 ## new version under review
@@ -547,15 +557,15 @@ GP <- ggplot(CECR,
   coord_flip()+
   scale_y_continuous(label=absspace,limits=c(0,tp))+
   xlab('')+
-  ylab('Incremental cost-effectiveness ratio\n(USD per 3%-discounted DALY averted)')+
+  ylab(xlb)+
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.65,0.2))
 ## GP
 
 ## NOTE seems to want to be run interactively?
-ggsave(GP,file=here('output/figure_CE2.pdf'),w=10,h=10)
-ggsave(GP,file=here('output/figure_CE2.eps'),w=10,h=10)
-ggsave(GP,file=here('output/figure_CE2.jpg'),w=10,h=10)
+ggsave(GP,file=gh('output/figure_nCE{drx}.pdf'),w=10,h=10)
+ggsave(GP,file=gh('output/figure_nCE{drx}.eps'),w=10,h=10)
+ggsave(GP,file=gh('output/figure_nCE{drx}.jpg'),w=10,h=10)
 
 
 ## --- supplementary figure CEACs
@@ -569,7 +579,7 @@ GP <- ggplot(CEAC,aes(threshold,prob,col=`PT regimen`,lty=intervention))+
   ylab('Probability cost-effective')
 ## GP
 
-ggsave(GP,file=here('output/Sfigure_CEAC.png'),w=12,h=12)
+ggsave(GP,file=gh('output/Sfigure_CEAC{drx}.png'),w=12,h=12)
 
 
 ## --- supplementary version with all countries
@@ -598,65 +608,75 @@ GP <- ggplot(CEC[cpda>0 & iso3 %in% unique(tmp$iso3)],
   scale_color_manual(values=colz,name='TPT regimen')+
   scale_y_continuous(label=absspace,limits=c(0,tp))+
   xlab('Country ISO3 code')+
-  ylab('Cost per 3%-discounted DALY averted (USD)')+
+  ylab(xlb)+
   theme_classic()+ggpubr::grids()+
   theme(legend.position=c(0.8,0.2))
 
-ggsave(GP,file=here('output/Sfigure_CE.png'),w=20,h=25)
+ggsave(GP,file=gh('output/Sfigure_CE{drx}.png'),w=20,h=25)
 
 
-## --- supplementary figure on cost breakdown
-
-GP <- ggplot(KKR[`PT regimen` %in% c('Lfx','none')],
-             aes(intervention,value,fill=`variable`))+
-  geom_bar(stat='identity')+
-  facet_wrap(~iso3,scales='free')+
-  scale_y_continuous(label=comma)+
-  xlab('Intervention (with Lfx-based TPT)')+ylab('Cost')+
-  theme(legend.position = 'top',
-        legend.title = element_blank(),
-        axis.text.x =element_text(angle = 45, hjust=1)
-        )
-## GP
-
-ggsave(GP,file=here('output/Sfigure_costs.png'),w=25,h=15)
+## --- (really table) ---
+## CSV output of above data
+cecsv <- CEC[cpda>0 & iso3 %in% unique(tmp$iso3)]
+cecsv <- dcast(cecsv,iso3 ~ intervention + `PT regimen` ,value.var='cpda')
+if(drx=="")
+  fwrite(format(cecsv,digits=0,nsmall=0,scientific=FALSE),file=here('output/F3_ICERdata.csv'))
 
 
-## --- understanding odd cost countries
-oddcs <- c('RUS','KAZ','PER','BLR')
-KK[`PT regimen` %in% 'Lfx' &
-   intervention=='PT to <15',
-   attfrac:=`ATT-related`/total]
-tmp <- KK[is.finite(attfrac) &
-          iso3 %in% HBC[g.hbmdr==1,iso3],
-          .(iso3,attfrac)]
-tmp[,odd:=ifelse(iso3 %in% oddcs,TRUE,FALSE)]
-tmp <- merge(tmp,DX,by='iso3',all.x=TRUE,all.y=FALSE)
-tmp[,cl:=ifelse(odd,'red','black')]
+if(drx==""){ #begin SA exclusion
+  ## --- supplementary figure on cost breakdown
 
-GP <- ggplot(tmp,
-             aes(prop,attfrac,
-                 col=I(cl),label=iso3))+
-  geom_point()+
-  scale_y_continuous(label=percent)+
-  scale_x_continuous(label=percent)+
-  geom_text_repel()+
-  xlab('Proportion of MDR/RR-TB that is FQR')+
-  ylab('Proportion of costs that are ATT-related')+
-  theme_classic() + ggpubr::grids()
-## GP
+  GP <- ggplot(KKR[`PT regimen` %in% c('Lfx','none')],
+               aes(intervention,value,fill=`variable`))+
+    geom_bar(stat='identity')+
+    facet_wrap(~iso3,scales='free')+
+    scale_y_continuous(label=comma)+
+    xlab('Intervention (with Lfx-based TPT)')+ylab('Cost')+
+    theme(legend.position = 'top',
+          legend.title = element_blank(),
+          axis.text.x =element_text(angle = 45, hjust=1)
+          )
+  ## GP
 
-ggsave(GP,file=here('output/Sfigure_cost_explore.png'),w=10,h=10)
+  ggsave(GP,file=here('output/Sfigure_costs.png'),w=25,h=15)
 
-## look at unit costs
-C0 <- fread(here('output/country_unit_costs.csv'))
-CM <- C0[,.(cost.m=mean(cost.m),cost.me=median(cost.m)),by=unit_cost]
-Codd <- C0[iso3 %in% oddcs,.(iso3,unit_cost,cost.m)]
-Codd <- dcast(Codd,unit_cost ~ iso3,value.var = 'cost.m')
-CM <- merge(CM,Codd,by='unit_cost')
-names(CM)[2:3] <- c('mean','median')
-fwrite(CM,file=here('output/tmp_uc.csv'))
 
+  ## --- understanding odd cost countries
+  oddcs <- c('RUS','KAZ','PER','BLR')
+  KK[`PT regimen` %in% 'Lfx' &
+     intervention=='PT to <15',
+     attfrac:=`ATT-related`/total]
+  tmp <- KK[is.finite(attfrac) &
+            iso3 %in% HBC[g.hbmdr==1,iso3],
+            .(iso3,attfrac)]
+  tmp[,odd:=ifelse(iso3 %in% oddcs,TRUE,FALSE)]
+  tmp <- merge(tmp,DX,by='iso3',all.x=TRUE,all.y=FALSE)
+  tmp[,cl:=ifelse(odd,'red','black')]
+
+  GP <- ggplot(tmp,
+               aes(prop,attfrac,
+                   col=I(cl),label=iso3))+
+    geom_point()+
+    scale_y_continuous(label=percent)+
+    scale_x_continuous(label=percent)+
+    geom_text_repel()+
+    xlab('Proportion of MDR/RR-TB that is FQR')+
+    ylab('Proportion of costs that are ATT-related')+
+    theme_classic() + ggpubr::grids()
+  ## GP
+
+  ggsave(GP,file=here('output/Sfigure_cost_explore.png'),w=10,h=10)
+
+  ## look at unit costs
+  C0 <- fread(here('output/country_unit_costs.csv'))
+  CM <- C0[,.(cost.m=mean(cost.m),cost.me=median(cost.m)),by=unit_cost]
+  Codd <- C0[iso3 %in% oddcs,.(iso3,unit_cost,cost.m)]
+  Codd <- dcast(Codd,unit_cost ~ iso3,value.var = 'cost.m')
+  CM <- merge(CM,Codd,by='unit_cost')
+  names(CM)[2:3] <- c('mean','median')
+  fwrite(CM,file=here('output/tmp_uc.csv'))
+
+} #end SA exclusion
 
 cat("==== FIGURES done =======\n")
 
@@ -817,7 +837,8 @@ resnames <- c("rtype","variable","No HHCM_none","HHCM, no PT_none",
               "PT to <15_BDQ")
 setcolorder(outcomes,resnames)
 
-fwrite(outcomes,file=here('output/table_outcomes.csv'))
+if(drx=="") #SA exclusion
+  fwrite(outcomes,file=here('output/table_outcomes.csv'))
 
 
 ## === resources table
@@ -857,7 +878,8 @@ resources <- dcast(rez,rtype + variable ~
 ## reorder cols
 setcolorder(resources,resnames)
 
-fwrite(resources,file=here('output/table_resources.csv'))
+if(drx=="")
+  fwrite(resources,file=here('output/table_resources.csv'))
 
 ## === health economics table
 
@@ -954,7 +976,7 @@ setcolorder(Wo,c('variable','none',nmz[2:14]))
 ## Wo
 
 
-fwrite(Wo,file=here('output/table_HE.csv'))
+fwrite(Wo,file=gh('output/table_HE{drx}.csv'))
 ## =====================================================
 
 cat("==== TABLES done =======\n")
