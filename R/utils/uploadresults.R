@@ -31,6 +31,7 @@ upload.to.sheets <- function(filename,sheetid,
 upload.to.sheets("table_resources.csv",shid,pulmsa)
 upload.to.sheets("table_outcomes.csv",shid,pulmsa)
 upload.to.sheets("table_HE.csv",shid,pulmsa)
+upload.to.sheets("AEests.csv",shid,pulmsa)
 
 
 ## --- gather & write discount rate SAs

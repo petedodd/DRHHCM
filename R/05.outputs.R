@@ -110,19 +110,42 @@ setkey(WK,iso3)
 load(here('indata/HBC.Rdata'))          #HBC lists
 WB <- fread(here('indata/WBIL.csv'))    #income
 
+## parameters for AE output only
+PZ <- HEdtree::parse.parmtable(data = read.csv(here('indata/DRHHCMparms.csv'))) #build parameter object no test
+
+
 ## safety
 (bad <- IV[!is.finite(cost),unique(iso3)])
 (badb <- IVb[!is.finite(cost),unique(iso3)])
 IV <- IV[!iso3 %in% bad]
 IVb <- IVb[!iso3 %in% badb]
 
-cat(IV[,length(unique(iso3))],file=here('output/isolistN.txt'))
-cat(IV[,unique(iso3)],file=here('output/isolist.txt'),sep=', ')
-
+if(drx==""){
+  cat(IV[,length(unique(iso3))],file=here('output/isolistN.txt'))
+  cat(IV[,unique(iso3)],file=here('output/isolist.txt'),sep=', ')
+}
 
 ## =================================
 ## DATA WORK
 ## =================================
+
+
+
+## === AE output
+AE <- IV[`PT regimen`=='FQ',.(iso3,repn,acat,ptc,intervention)]
+aex <- data.table(ae=PZ$fracAE$r(max(AE$repn)),sae=PZ$fracSAE$r(max(AE$repn)),repn=1:max(AE$repn))
+aex[,.(mean(ae),mean(sae))] #CHECK 8%,1.6%
+AE <- merge(AE,aex,by='repn',all.x=TRUE)
+AE <- merge(AE,WK[,.(iso3,g_whoregion)],by='iso3')
+AE[,ae:=ptc*ae]; AE[,sae:=ptc*sae];
+AE[repn==1,.(sum(ae),0.08*sum(ptc),sum(sae),0.016*sum(ptc))] #check
+AE <- AE[,.(ae=sum(ae),sae=sum(sae)),by=.(acat,g_whoregion,repn)]
+AE <- AE[,.(`Adverse Events`=seehere(ae),`Serious Adverse Events`=seehere(sae)),
+         by=.(`WHO region`=g_whoregion,`Age cateogory (years)`=acat)]
+if(drx==""){
+  fwrite(AE,file=here('output/AEests.csv'))
+}
+
 
 ## === cost x country data for appendix
 KK1 <- IV[,.(cost=sum(cost),costacf=sum(costacf),
