@@ -1,5 +1,8 @@
 # DRHHCM
-tbc
+Code and data for:
+
+Dodd PJ, Mafirakureva N, Seddon JA, McQuaid CF. The global impact of household contact management for children on multidrug-resistant and rifampicin-resistant tuberculosis cases, deaths, and health-system costs in 2019: a modelling study. The Lancet Global Health. 2022 May 18
+https://doi.org/10.1016/S2214-109X(22)00113-9
 
 # Notes on analysis
 
